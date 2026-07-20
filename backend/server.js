@@ -10,8 +10,8 @@ const { Server } = require('socket.io');
 const connectDB = require('./db/connect');
 
 const authRoutes = require('./routes/auth');
-const jobRoutes = require('./routes/jobs');
-const paymentRoutes = require('./routes/payments');
+const jobRoutes = require('./routes/job');
+const paymentRoutes = require('./routes/payment');
 const webhookRoutes = require('./routes/webhooks');
 const proofRoutes = require('./routes/proofs');
 
