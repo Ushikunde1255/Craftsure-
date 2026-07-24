@@ -16,6 +16,7 @@ const webhookRoutes = require('./routes/webhooks');
 const proofRoutes = require('./routes/proofs');
 
 const app = express();
+app.set('trust proxy', 1);
 const server = http.createServer(app);
 
 // ===== SECURITY MIDDLEWARE =====
