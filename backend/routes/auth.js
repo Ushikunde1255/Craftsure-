@@ -1,15 +1,25 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const { validate, registerSchema, loginSchema } = require('../middleware/validate');
+const { validate, registerSchema, loginSchema } = require('../middleware/validation');
 const { auth } = require('../middleware/auth');
 
 const router = express.Router();
 
-// @route   POST /api/auth/register
+// POST /api/auth/register
 router.post('/register', validate(registerSchema), async (req, res) => {
   try {
-    const { name, email, password, role, phone, location } = req.body;
+    let { name, email, password, role, phone, location } = req.body;
+
+    // FIX: force lowercase for role
+    if (role) {
+      role = role.toLowerCase();
+      if (role === 'homeowner') role = 'client';
+    } else {
+      role = 'client';
+    }
+
+    console.log('REGISTER ATTEMPT:', { name, email, role });
 
     const existing = await User.findOne({ email: email.toLowerCase() });
     if (existing) {
@@ -43,17 +53,17 @@ router.post('/register', validate(registerSchema), async (req, res) => {
       }
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: 'Server error during registration' });
+    console.error('REGISTER ERROR:', err);
+    res.status(500).json({ msg: 'Server error during registration', error: err.message });
   }
 });
 
-// @route   POST /api/auth/login
+// POST /api/auth/login
 router.post('/login', validate(loginSchema), async (req, res) => {
   try {
     const { email, password } = req.body;
-
     const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
+    
     if (!user) {
       return res.status(400).json({ msg: 'Invalid credentials' });
     }
@@ -70,7 +80,6 @@ router.post('/login', validate(loginSchema), async (req, res) => {
     );
 
     res.json({
-      msg: 'Login successful',
       token,
       user: {
         id: user._id,
@@ -81,13 +90,8 @@ router.post('/login', validate(loginSchema), async (req, res) => {
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ msg: 'Server error during login' });
+    res.status(500).json({ msg: 'Server error' });
   }
 });
 
-// @route   GET /api/auth/me
-router.get('/me', auth, async (req, res) => {
-  res.json({ user: req.user });
-});
-
-module.exports = router;
+module.exports = router; 
