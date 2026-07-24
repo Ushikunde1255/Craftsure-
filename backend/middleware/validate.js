@@ -1,32 +1,34 @@
 const Joi = require('joi');
 
-// Generic validator factory
+// generic validator factory
 const validate = (schema) => {
   return (req, res, next) => {
-    const { error } = schema.validate(req.body, {
+    const { error, value } = schema.validate(req.body, {
       abortEarly: false,
       stripUnknown: true
     });
 
     if (error) {
       const messages = error.details.map(d => d.message);
-      return res.status(400).json({ 
-        msg: 'Validation failed', 
-        errors: messages 
+      return res.status(400).json({
+        msg: 'Validation failed',
+        errors: messages
       });
     }
+
+    // use the cleaned + lowercased values
+    req.body = value;
     next();
   };
 };
 
-// Schemas
 const registerSchema = Joi.object({
   name: Joi.string().min(2).max(50).required(),
   email: Joi.string().email().required(),
   password: Joi.string().min(6).max(100).required(),
-  role: Joi.string().valid('client', 'artisan').default('client'),
-  phone: Joi.string().min(8).max(20).optional(),
-  location: Joi.string().max(100).optional()
+  role: Joi.string().lowercase().trim().valid('client', 'artisan', 'admin', 'homeowner').default('client'),
+  phone: Joi.string().allow('', null).min(8).max(20).optional(),
+  location: Joi.string().allow('', null).max(100).optional()
 });
 
 const loginSchema = Joi.object({
