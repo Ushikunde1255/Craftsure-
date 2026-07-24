@@ -1,49 +1,64 @@
+const express = require('express');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { validate, registerSchema, loginSchema } = require('../middleware/validation');
 
-const auth = async (req, res, next) => {
+const router = express.Router();
+
+router.post('/register', validate(registerSchema), async (req, res) => {
   try {
-    const header = req.headers.authorization;
-    
-    if (!header || !header.startsWith('Bearer ')) {
-      return res.status(401).json({ msg: 'No token, authorization denied' });
+    let { name, email, password, role, phone, location } = req.body;
+
+    if (role) {
+      role = role.toLowerCase();
+      if (role === 'homeowner') role = 'client';
+    } else {
+      role = 'client';
     }
 
-    const token = header.split(' ')[1];
-    
-    if (!token) {
-      return res.status(401).json({ msg: 'No token, authorization denied' });
+    const existing = await User.findOne({ email: email.toLowerCase() });
+    if (existing) {
+      return res.status(400).json({ msg: 'Email already exists' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
-    const user = await User.findById(decoded.id).select('-password');
-    if (!user) {
-      return res.status(401).json({ msg: 'User not found' });
-    }
+    const user = await User.create({
+      name,
+      email: email.toLowerCase(),
+      password,
+      role,
+      phone,
+      location
+    });
 
-    req.user = user;
-    next();
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.status(201).json({
+      msg: 'User created',
+      token,
+      user: { id: user._id, name: user.name, email: user.email, role: user.role }
+    });
   } catch (err) {
-    if (err.name === 'TokenExpiredError') {
-      return res.status(401).json({ msg: 'Token expired, please login again' });
-    }
-    if (err.name === 'JsonWebTokenError') {
-      return res.status(401).json({ msg: 'Invalid token' });
-    }
-    console.error('Auth middleware error:', err.message);
-    res.status(500).json({ msg: 'Auth failed' });
+    console.error('REGISTER ERROR:', err);
+    res.status(500).json({ msg: 'Server error', error: err.message });
   }
-};
+});
 
-// Optional role check
-const authorize = (...roles) => {
-  return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
-      return res.status(403).json({ msg: 'Not authorized for this action' });
-    }
-    next();
-  };
-};
+router.post('/login', validate(loginSchema), async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
+    if (!user) return res.status(400).json({ msg: 'Invalid credentials' });
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) return res.status(400).json({ msg: 'Invalid credentials' });
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+  } catch (err) {
+    res.status(500).json({ msg: 'Server error' });
+  }
+});
 
-module.exports = { auth, authorize };
+module.exports = router;
