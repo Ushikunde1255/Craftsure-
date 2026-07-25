@@ -5,6 +5,7 @@ const { validate, registerSchema, loginSchema } = require('../middleware/validat
 
 const router = express.Router();
 
+// REGISTER
 router.post('/register', validate(registerSchema), async (req, res) => {
   try {
     let { name, email, password, role, phone, location } = req.body;
@@ -15,6 +16,8 @@ router.post('/register', validate(registerSchema), async (req, res) => {
     } else {
       role = 'client';
     }
+
+    console.log('REGISTER ATTEMPT:', { name, email, role });
 
     const existing = await User.findOne({ email: email.toLowerCase() });
     if (existing) {
@@ -39,7 +42,12 @@ router.post('/register', validate(registerSchema), async (req, res) => {
     res.status(201).json({
       msg: 'User created',
       token,
-      user: { id: user._id, name: user.name, email: user.email, role: user.role }
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
     });
   } catch (err) {
     console.error('REGISTER ERROR:', err);
@@ -47,16 +55,29 @@ router.post('/register', validate(registerSchema), async (req, res) => {
   }
 });
 
+// LOGIN
 router.post('/login', validate(loginSchema), async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
+    
     if (!user) return res.status(400).json({ msg: 'Invalid credentials' });
+    
     const isMatch = await user.comparePassword(password);
     if (!isMatch) return res.status(400).json({ msg: 'Invalid credentials' });
-    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.json({
+      token,
+      user: { id: user._id, name: user.name, email: user.email, role: user.role }
+    });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ msg: 'Server error' });
   }
 });
