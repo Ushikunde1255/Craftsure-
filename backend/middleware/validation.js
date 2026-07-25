@@ -1,34 +1,12 @@
 const Joi = require('joi');
 
-// generic validator factory
-const validate = (schema) => {
-  return (req, res, next) => {
-    const { error, value } = schema.validate(req.body, {
-      abortEarly: false,
-      stripUnknown: true
-    });
-
-    if (error) {
-      const messages = error.details.map(d => d.message);
-      return res.status(400).json({
-        msg: 'Validation failed',
-        errors: messages
-      });
-    }
-
-    // use the cleaned + lowercased values
-    req.body = value;
-    next();
-  };
-};
-
 const registerSchema = Joi.object({
-  name: Joi.string().min(2).max(50).required(),
+  name: Joi.string().min(2).max(100).required(),
   email: Joi.string().email().required(),
-  password: Joi.string().min(6).max(100).required(),
-  role: Joi.string().lowercase().trim().valid('client', 'artisan', 'admin', 'homeowner').default('client'),
-  phone: Joi.string().allow('', null).min(8).max(20).optional(),
-  location: Joi.string().allow('', null).max(100).optional()
+  password: Joi.string().min(6).required(),
+  role: Joi.string().lowercase().valid('client', 'artisan', 'admin', 'homeowner').required(),
+  phone: Joi.string().allow('', null),
+  location: Joi.string().allow('', null)
 });
 
 const loginSchema = Joi.object({
@@ -36,18 +14,19 @@ const loginSchema = Joi.object({
   password: Joi.string().required()
 });
 
-const jobSchema = Joi.object({
-  title: Joi.string().min(5).max(100).required(),
-  description: Joi.string().min(20).max(2000).required(),
-  category: Joi.string().required(),
-  budget: Joi.number().min(500).required(),
-  location: Joi.string().required(),
-  deadline: Joi.date().optional()
-});
-
-module.exports = {
-  validate,
-  registerSchema,
-  loginSchema,
-  jobSchema
+const validate = (schema) => {
+  return (req, res, next) => {
+    if (req.body.role) {
+      req.body.role = req.body.role.toLowerCase();
+      if (req.body.role === 'homeowner') req.body.role = 'client';
+    }
+    const { error } = schema.validate(req.body);
+    if (error) {
+      console.log('VALIDATION FAIL:', error.details[0].message, req.body);
+      return res.status(400).json({ msg: error.details[0].message });
+    }
+    next();
+  };
 };
+
+module.exports = { validate, registerSchema, loginSchema };
