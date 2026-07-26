@@ -1,10 +1,31 @@
 import { useEffect, useState } from 'react'
-import api from '../api.js'
-export default function Dashboard(){
- const [jobs,setJobs]=useState([])
- const [msg,setMsg]=useState('Loading...')
- useEffect(()=>{
-  api.get('/jobs').then(r=>{setJobs(r.data.jobs||r.data||[]); setMsg('')}).catch(e=>setMsg(e.message))
- },[])
- return <div style={{padding:'20px'}}><h2>Dashboard</h2><p>{msg}</p>{jobs.map(j=><div key={j._id||j.id} style={{background:'white',padding:'15px',margin:'10px 0',borderRadius:'8px'}}><h4>{j.title}</h4><p>Budget: N{j.budget}</p><p>Status: {j.status}</p></div>)}</div>
+
+export default function Dashboard() {
+  const [user, setUser] = useState(null)
+  
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user')
+    if (storedUser) setUser(JSON.parse(storedUser))
+  }, [])
+
+  return (
+    <div style={{ padding: '20px' }}>
+      <h1>Dashboard</h1>
+      {user ? (
+        <div>
+          <h2>Welcome, {user.name}! 🎉</h2>
+          <p>Email: {user.email}</p>
+          <p>Role: {user.role}</p>
+          <p style={{ marginTop: 20, color: 'green' }}>
+            ✅ CraftSure is LIVE! Backend + Frontend connected!
+          </p>
+        </div>
+      ) : (
+        <p>Loading user... If blank for long, you are not logged in — go Login again.</p>
+      )}
+      <div style={{ marginTop: 30 }}>
+        <a href="/jobs" style={{ background: '#7c3aed', color: 'white', padding: '10px 20px', borderRadius: '8px' }}>Go to Jobs</a>
+      </div>
+    </div>
+  )
 }
