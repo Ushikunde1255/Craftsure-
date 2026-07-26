@@ -1,20 +1,61 @@
-import { useEffect, useState } from 'react'
-import api from '../api.js'
-export default function Jobs(){
- const [jobs,setJobs]=useState([])
- const [title,setTitle]=useState('')
- const [budget,setBudget]=useState('')
- const [desc,setDesc]=useState('')
- const load=()=>api.get('/jobs').then(r=>setJobs(r.data.jobs||r.data||[]))
- useEffect(()=>{load()},[])
- const postJob=async(e)=>{
-  e.preventDefault()
-  try{
-    await api.post('/jobs',{title,description:desc,budget:Number(budget),category:'general',location:'Lagos, Nigeria'})
-    alert('Job posted!')
-    setTitle('');setBudget('');setDesc('')
-    load()
-  }catch(err){alert(err.response?.data?.message||err.message)}
- }
- return <div style={{padding:'20px',maxWidth:'800px',margin:'0 auto'}}><h2>Jobs - Nigeria Marketplace</h2><form onSubmit={postJob} style={{background:'white',padding:'20px',borderRadius:'12px',display:'flex',flexDirection:'column',gap:'10px'}}><h3>Post New Job</h3><input placeholder="Title e.g. Fix my sink" value={title} onChange={e=>setTitle(e.target.value)} style={{padding:'10px'}}/><input placeholder="Budget in Naira e.g. 5000" value={budget} onChange={e=>setBudget(e.target.value)} style={{padding:'10px'}}/><textarea placeholder="Description" value={desc} onChange={e=>setDesc(e.target.value)} style={{padding:'10px'}}/><button style={{background:'#7c3aed',color:'white',padding:'10px',borderRadius:'8px',border:'none'}} type="submit">Post Job</button></form><div style={{marginTop:'20px'}}>{jobs.map(j=><div key={j._id||Math.random()} style={{background:'white',padding:'15px',margin:'10px 0',borderRadius:'8px'}}><b>{j.title}</b><p>{j.description}</p><p>N{j.budget} - {j.location||'Nigeria'}</p></div>)}</div></div>
+import { useState, useEffect } from 'react'
+const API_URL = 'https://craftsure-1.onrender.com'
+
+export default function Jobs() {
+  const [jobs, setJobs] = useState([])
+  const [title, setTitle] = useState('')
+  const [budget, setBudget] = useState('')
+  const [description, setDescription] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const fetchJobs = async () => {
+    const res = await fetch(`${API_URL}/api/jobs`)
+    const data = await res.json()
+    setJobs(data)
+  }
+
+  useEffect(() => { fetchJobs() }, [])
+
+  const handlePost = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch(`${API_URL}/api/jobs`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ title, description, budget })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message)
+      alert('Job posted!')
+      setTitle(''); setBudget(''); setDescription('')
+      fetchJobs()
+    } catch (err) {
+      alert(err.message)
+    }
+    setLoading(false)
+  }
+
+  return (
+    <div style={{ padding: '20px', maxWidth: '600px', margin: '0 auto' }}>
+      <h1>Jobs - Nigeria Marketplace</h1>
+      <form onSubmit={handlePost} style={{ border: '1px solid #ddd', padding: '15px', borderRadius: '8px', marginBottom: '20px' }}>
+        <h3>Post New Job</h3>
+        <input value={title} onChange={e=>setTitle(e.target.value)} placeholder="Title e.g. Fix my sink" required style={{ width:'100%', padding:'8px', marginBottom:'8px' }}/>
+        <input value={budget} onChange={e=>setBudget(e.target.value)} placeholder="Budget in Naira e.g. 5000" type="number" required style={{ width:'100%', padding:'8px', marginBottom:'8px' }}/>
+        <textarea value={description} onChange={e=>setDescription(e.target.value)} placeholder="Description" required style={{ width:'100%', padding:'8px', marginBottom:'8px' }}/>
+        <button type="submit" disabled={loading} style={{ width:'100%', padding:'10px', background:'#7c3aed', color:'white' }}>{loading? 'Posting...' : 'Post Job'}</button>
+      </form>
+      <h3>All Jobs ({jobs.length})</h3>
+      {jobs.map(job=>(
+        <div key={job._id} style={{ border:'1px solid #eee', padding:'10px', marginBottom:'10px' }}>
+          <b>{job.title}</b> - ₦{job.budget}<br/>{job.description}
+        </div>
+      ))}
+    </div>
+  )
 }
