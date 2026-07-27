@@ -72,14 +72,25 @@ export default function Jobs() {
       <div style={{marginTop:'30px'}}>
         <h2>All Jobs ({jobs.length})</h2>
         {jobs.map(job=>(
-          <div key={job._id} style={{border:'1px solid #eee',padding:'15px',borderRadius:'8px',marginBottom:'10px',background:'white'}}>
-            {job.image && <img src={job.image} alt="job" style={{width:'100%',height:'200px',objectFit:'cover',borderRadius:'8px',marginBottom:'8px'}} />}
-            <h3 style={{margin:'0'}}>{job.title}</h3>
-            <p style={{color:'#555'}}>{job.description}</p>
-            <p style={{fontWeight:'bold',color:'#5a31f5'}}>₦{job.budget?.toLocaleString()} - {job.category} - {job.location}</p>
-          </div>
-        ))}
-      </div>
+  <div key={job._id} style={{background:'white',borderRadius:'12px',marginBottom:'15px',overflow:'hidden',boxShadow:'0 2px 6px rgba(0,0,0,0.1)',border:'1px solid #eee'}}>
+    {/* PHOTO SHOW HERE */}
+    {(job.photoUrl || job.image) && (
+      <img 
+        src={job.photoUrl || job.image} 
+        alt={job.category}
+        style={{width:'100%',height:'200px',objectFit:'cover',display:'block'}} 
+        onError={(e)=> e.target.style.display='none'}
+      />
+    )}
+    <div style={{padding:'15px'}}>
+      <h3 style={{margin:'0 0 5px 0'}}>{job.category || job.title} - ₦{Number(job.budget || 0).toLocaleString()}</h3>
+      <p style={{fontSize:'14px',margin:'8px 0'}}>{job.description}</p>
+      <p style={{color:'#5a31f5',fontWeight:'bold',fontSize:'13px'}}>
+        ₦{Number(job.budget).toLocaleString()} - {job.customerName || 'School owner'} - {job.location}
+      </p>
+      <button style={{width:'100%',padding:'12px',background:'#00aa00',color:'white',border:'none',borderRadius:'8px',marginTop:'10px',fontWeight:'bold'}}>
+        🔨 Apply For This Job
+      </button>
     </div>
-  );
-}
+  </div>
+))}
