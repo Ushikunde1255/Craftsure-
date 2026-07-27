@@ -3,11 +3,7 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 
 router.post('/', auth, async (req, res) => {
-  try {
-    res.json({ message: "Payment initialized", status: "success" });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
+  res.json({ message: "Payment initialized", status: "success" });
 });
 
 router.get('/', auth, async (req, res) => {
