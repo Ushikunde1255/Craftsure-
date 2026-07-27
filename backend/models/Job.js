@@ -1,15 +1,18 @@
 const mongoose = require('mongoose');
 
 const jobSchema = new mongoose.Schema({
-  title: { type: String, required: true },
+  title: String,
   description: { type: String, required: true },
   budget: { type: Number, required: true },
-  location: { type: String, default: 'Makurdi, Benue' },
-  category: { type: String, default: 'Plumbing' },
-  image: { type: String, default: '' },
-  postedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  customerName: { type: String },
-  status: { type: String, default: 'open' }
+  location: String,
+  category: String,
+  image: String,
+  photoUrl: String,      // <-- MUST HAVE THIS!
+  photoId: String,       // <-- MUST HAVE THIS!
+  postedBy: String,
+  customerName: String,
+  postedBySkill: String,
+  email: String
 }, { timestamps: true });
 
-module.exports = mongoose.models.Job || mongoose.model('Job', jobSchema);
+module.exports = mongoose.model('Job', jobSchema);
