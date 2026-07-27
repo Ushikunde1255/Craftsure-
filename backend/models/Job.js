@@ -6,6 +6,7 @@ const jobSchema = new mongoose.Schema({
   budget: { type: Number, required: true },
   location: { type: String, default: 'Makurdi, Benue' },
   category: { type: String, default: 'Plumbing' },
+  image: { type: String, default: '' },
   postedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   customerName: { type: String },
   status: { type: String, default: 'open' }
