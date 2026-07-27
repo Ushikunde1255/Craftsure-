@@ -9,20 +9,17 @@ export default function Jobs() {
   const [budget, setBudget] = useState('');
   const [location, setLocation] = useState('Makurdi, Benue');
   const [category, setCategory] = useState('Plumbing');
+  const [customCategory, setCustomCategory] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Fetch all jobs
   const fetchJobs = async () => {
     try {
       const res = await fetch(API_URL);
       const data = await res.json();
-      if (Array.isArray(data)) {
-        setJobs(data);
-      } else if (data.jobs) {
-        setJobs(data.jobs);
-      }
+      if (Array.isArray(data)) setJobs(data);
+      else if (data.jobs) setJobs(data.jobs);
     } catch (err) {
-      console.log('Fetch jobs error:', err.message);
+      console.log('Fetch error:', err.message);
     }
   };
 
@@ -30,24 +27,28 @@ export default function Jobs() {
     fetchJobs();
   }, []);
 
-  // Post new job - FIXED! This was calling /auth/register before
   const handlePostJob = async (e) => {
     e.preventDefault();
-
     const token = localStorage.getItem('token');
     if (!token) {
-      alert('Please login first! Go to Login page');
+      alert('Please login first!');
       window.location.href = '/login';
       return;
     }
-
     if (!title ||!description ||!budget) {
-      alert('Please fill Title, Description and Budget');
+      alert('Fill Title, Description and Budget');
+      return;
+    }
+
+    // Use custom job if Other is selected
+    const finalCategory = category === 'Other'? customCategory.trim() : category;
+
+    if (category === 'Other' &&!customCategory.trim()) {
+      alert('Please type your job type in "Other job" box');
       return;
     }
 
     setLoading(true);
-
     try {
       const res = await fetch(API_URL, {
         method: 'POST',
@@ -61,27 +62,22 @@ export default function Jobs() {
           description: description.trim(),
           budget: Number(budget),
           location: location,
-          category: category
+          category: finalCategory
         })
       });
 
       const data = await res.json();
-      console.log('Post job response:', data);
-
       if (res.ok) {
-        alert('Job posted successfully! ✅');
-        setTitle('');
-        setDescription('');
-        setBudget('');
-        fetchJobs(); // Refresh list
+        alert(`Job posted! ✅ Category: ${finalCategory}`);
+        setTitle(''); setDescription(''); setBudget(''); setCustomCategory('');
+        setCategory('Plumbing');
+        fetchJobs();
       } else {
-        // Show real backend error
-        const errorMsg = data.errors? data.errors[0].msg : data.msg || data.message || 'Failed to post job';
+        const errorMsg = data.errors? data.errors[0].msg : data.msg || 'Failed';
         alert(errorMsg);
       }
     } catch (err) {
       alert('Network error: ' + err.message);
-      console.log('Post error:', err.message);
     } finally {
       setLoading(false);
     }
@@ -90,9 +86,8 @@ export default function Jobs() {
   return (
     <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
       <h1 style={{ fontSize: '28px', fontWeight: 'bold' }}>Jobs - Nigeria Marketplace</h1>
-      <p style={{ color: '#666' }}>Post a job and connect with verified artisans in Nigeria</p>
+      <p style={{ color: '#666' }}>Select a job or choose Other to write your own</p>
 
-      {/* POST JOB FORM */}
       <div style={{ border: '1px solid #ddd', padding: '20px', borderRadius: '10px', marginTop: '20px', background: '#f9f9ff' }}>
         <h2>Post a New Job</h2>
         <form onSubmit={handlePostJob}>
@@ -105,20 +100,40 @@ export default function Jobs() {
             required
           />
 
+          {/* CATEGORY SELECT WITH OTHER OPTION */}
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            style={{ width: '100%', padding: '12px', margin: '8px 0', borderRadius: '6px', border: '1px solid #ccc' }}
+            style={{ width: '100%', padding: '12px', margin: '8px 0', borderRadius: '6px', border: '1px solid #ccc', fontWeight: 'bold' }}
           >
             <option>Plumbing</option>
             <option>Electrical</option>
             <option>Carpentry</option>
             <option>Painting</option>
-            <option>Tailoring</option>
-            <option>Hair Dressing</option>
-            <option>Mechanic</option>
-            <option>Cleaning</option>
+            <option>Tailoring / Fashion Design</option>
+            <option>Hair Dressing / Barbing</option>
+            <option>Mechanic / Vulcanizer</option>
+            <option>Cleaning / Laundry</option>
+            <option>Bricklaying / Tiling</option>
+            <option>Welding / Fabrication</option>
+            <option>Catering / Baking</option>
+            <option>Photography / Videography</option>
+            <option>Makeup Artist</option>
+            <option>Phone Repair / Laptop Repair</option>
+            <option>Other - Type Your Own Job 👇</option>
           </select>
+
+          {/* SHOW THIS ONLY IF OTHER IS SELECTED */}
+          {category === 'Other - Type Your Own Job 👇' || category === 'Other'? (
+            <input
+              type="text"
+              placeholder="Type your job here e.g. Shoe Making, Farming, POP Ceiling..."
+              value={customCategory}
+              onChange={(e) => setCustomCategory(e.target.value)}
+              style={{ width: '100%', padding: '12px', margin: '8px 0', borderRadius: '6px', border: '2px solid #5a31f5', background: '#fffbe6' }}
+              required
+            />
+          ) : null}
 
           <input
             type="text"
@@ -149,4 +164,27 @@ export default function Jobs() {
           <button
             type="submit"
             disabled={loading}
-            style={{ width: '100%', padding: '14px', background: '#5a31f5', color:
+            style={{ width: '100%', padding: '14px', background: '#5a31f5', color: 'white', border: 'none', borderRadius: '8px', fontSize: '16px', fontWeight: 'bold' }}
+          >
+            {loading? 'Posting...' : `Post Job - ₦${budget || '0'}`}
+          </button>
+
+          {category.includes('Other') && customCategory && (
+            <p style={{ color: 'green', marginTop: '8px' }}>Posting as: <b>{customCategory}</b></p>
+          )}
+        </form>
+      </div>
+
+      <div style={{ marginTop: '30px' }}>
+        <h2>All Jobs ({jobs.length})</h2>
+        {jobs.map((job) => (
+          <div key={job._id} style={{ border: '1px solid #eee', padding: '15px', borderRadius: '8px', marginBottom: '10px', background: 'white' }}>
+            <h3 style={{ margin: '0 0 5px 0' }}>{job.title}</h3>
+            <p style={{ margin: '5px 0', color: '#555' }}>{job.description}</p>
+            <p style={{ fontWeight: 'bold', color: '#5a31f5' }}>₦{job.budget?.toLocaleString()} - {job.category} - {job.location}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
