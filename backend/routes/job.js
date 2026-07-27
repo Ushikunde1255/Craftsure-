@@ -1,35 +1,47 @@
 const express = require('express');
 const router = express.Router();
-const Job = require('../models/Job');
 const auth = require('../middleware/auth');
+const Job = require('../models/Job');
 
+// GET all jobs - anyone can see
 router.get('/', async (req, res) => {
   try {
     const jobs = await Job.find().sort({ createdAt: -1 });
     res.json(jobs);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ msg: 'Server error: ' + err.message });
   }
 });
 
+// POST job - ANY logged in user can post (artisan or customer) - FIXED!
 router.post('/', auth, async (req, res) => {
   try {
-    const { title, description, budget } = req.body;
-    if (!title ||!description ||!budget) {
-      return res.status(400).json({ message: "All fields required" });
+    console.log('Post job body:', req.body);
+    console.log('User:', req.user);
+
+    const { title, description, budget, location, category } = req.body;
+
+    if (!title || !description || !budget) {
+      return res.status(400).json({ msg: 'Title, description and budget required' });
     }
-    const userId = req.user.id || req.user._id;
-    const job = await Job.create({
-      title: title.trim(),
-      description: description.trim(),
+
+    const job = new Job({
+      title,
+      description,
       budget: Number(budget),
-      user: userId,
-      postedBy: userId
+      location: location || 'Makurdi, Benue',
+      category: category || 'Plumbing',
+      postedBy: req.user.id,
+      customerName: req.user.name || 'User'
     });
+
+    await job.save();
+    console.log('Job saved:', job.title);
     res.status(201).json(job);
+
   } catch (err) {
-    console.log("CREATE JOB ERROR:", err.message);
-    res.status(500).json({ message: err.message });
+    console.log('Job post error:', err.message);
+    res.status(500).json({ msg: 'Failed to save: ' + err.message });
   }
 });
 
