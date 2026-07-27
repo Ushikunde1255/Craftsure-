@@ -82,6 +82,23 @@ router.post('/', auth, upload.single('photo'), async (req, res) => {
   } catch (err) {
     res.status(500).json({ msg: 'Failed: ' + err.message });
   }
-});
+});// DELETE job + delete photo from Cloudinary
+router.delete('/:id', auth, async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id);
+    if (!job) return res.status(404).json({ msg: 'Job not found' });
 
+    // Optional: delete photo from Cloudinary
+    if (job.photoId) {
+      try {
+        await cloudinary.uploader.destroy(job.photoId);
+      } catch (e) {}
+    }
+
+    await Job.findByIdAndDelete(req.params.id);
+    res.json({ msg: 'Deleted' });
+  } catch (err) {
+    res.status(500).json({ msg: err.message });
+  }
+});
 module.exports = router;
