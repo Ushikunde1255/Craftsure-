@@ -7,8 +7,8 @@ const jobSchema = new mongoose.Schema({
   location: String,
   category: String,
   image: String,
-  photoUrl: String,      // <-- MUST HAVE THIS!
-  photoId: String,       // <-- MUST HAVE THIS!
+  photoUrl: String,     
+  photoId: String,       
   postedBy: String,
   customerName: String,
   postedBySkill: String,
