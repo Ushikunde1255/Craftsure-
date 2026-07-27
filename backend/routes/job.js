@@ -2,7 +2,20 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
 const Job = require('../models/Job');
+const multer = require('multer');
+const cloudinary = require('cloudinary').v2;
 
+// Cloudinary Config
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
+
+// GET ALL JOBS
 router.get('/', async (req, res) => {
   try {
     const jobs = await Job.find().sort({ createdAt: -1 });
@@ -12,22 +25,55 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.post('/', auth, async (req, res) => {
+// POST JOB - OPEN FOR ALL - REAL JOBS ONLY
+router.post('/', auth, upload.single('photo'), async (req, res) => {
   try {
-    const { title, description, budget, location, category, image } = req.body;
-    if (!title || !description || !budget) {
-      return res.status(400).json({ msg: 'Title, description and budget required' });
+    const { title, description, budget, location, category } = req.body;
+
+    // REAL JOB VALIDATION - Your idea!
+    if (!description || description.length < 20) {
+      return res.status(400).json({ msg: 'Describe work well, at least 20 chars. Real jobs only!' });
     }
+    if (!budget || Number(budget) < 1000) {
+      return res.status(400).json({ msg: 'Budget must be at least ₦1,000. No ₦0 jobs!' });
+    }
+    if (!location) {
+      return res.status(400).json({ msg: 'Location required. Real jobs need real place!' });
+    }
+
+    // Upload photo to Cloudinary if exists
+    let photoUrl = '';
+    let photoId = '';
+    if (req.file) {
+      const uploadResult = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: 'craftsure_jobs' },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        );
+        stream.end(req.file.buffer);
+      });
+      photoUrl = uploadResult.secure_url;
+      photoId = uploadResult.public_id;
+    }
+
     const job = new Job({
-      title,
+      title: title || category || 'Need artisan',
       description,
       budget: Number(budget),
       location: location || 'Makurdi, Benue',
       category: category || 'Plumbing',
-      image: image || '',
+      image: photoUrl,          // for old frontend
+      photoUrl: photoUrl,       // for new frontend
+      photoId: photoId,
       postedBy: req.user.id,
-      customerName: req.user.name || 'User'
+      customerName: req.user.name || 'User',
+      postedBySkill: req.user.skill || req.user.role || 'Client',
+      email: req.user.email
     });
+
     await job.save();
     res.status(201).json(job);
   } catch (err) {
