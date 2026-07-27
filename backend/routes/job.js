@@ -42,6 +42,9 @@ router.post('/', auth, upload.single('photo'), async (req, res) => {
     }
 
     // Upload photo to Cloudinary if exists
+    if (!req.file) {
+  return res.status(400).json({ msg: 'Photo is REQUIRED! Real jobs must have photo proof!' });
+    }
     let photoUrl = '';
     let photoId = '';
     if (req.file) {
