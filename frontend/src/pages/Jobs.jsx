@@ -84,19 +84,38 @@ export default function Jobs(){
 
       <h2 style={{margin:'20px 0'}}>All Jobs ({jobs.length})</h2>
       {jobs.map(job=>(
-        <div key={job._id} style={{background:'white',borderRadius:'12px',marginBottom:'15px',overflow:'hidden',boxShadow:'0 2px 6px rgba(0,0,0,0.1)'}}>
-          {(job.photoUrl || job.image) ? (
-            <img src={job.photoUrl || job.image} alt="job" style={{width:'100%',height:'220px',objectFit:'cover'}} />
-          ) : (
-            <div style={{background:'#eee',height:'50px',display:'flex',alignItems:'center',justifyContent:'center',color:'#999',fontSize:'12px'}}>No photo - Old job</div>
-          )}
-          <div style={{padding:'15px'}}>
-            <h3 style={{margin:0}}>{job.category || job.title}</h3>
-            <p style={{fontSize:'14px',margin:'8px 0'}}>{job.description}</p>
-            <p style={{color:'#5a31f5',fontWeight:'bold'}}>₦{Number(job.budget).toLocaleString()} - {job.customerName} - {job.location}</p>
-          </div>
-        </div>
-      ))}
+  <div key={job._id} style={{background:'white',borderRadius:'12px',marginBottom:'15px',overflow:'hidden',boxShadow:'0 2px 6px rgba(0,0,0,0.1)'}}>
+    {(job.photoUrl || job.image) && (
+      <img src={job.photoUrl || job.image} alt="job" style={{width:'100%',height:'220px',objectFit:'cover'}} />
+    )}
+    <div style={{padding:'15px'}}>
+      <h3 style={{margin:0}}>{job.category || job.title}</h3>
+      <p style={{fontSize:'14px',margin:'8px 0'}}>{job.description}</p>
+      <p style={{color:'#5a31f5',fontWeight:'bold'}}>₦{Number(job.budget).toLocaleString()} - {job.customerName || 'User'} - {job.location}</p>
+      
+      <div style={{display:'flex',gap:'10px',marginTop:'12px'}}>
+        <button 
+          onClick={()=> {
+            const text = `Hello, I want to apply for your ${job.category} job in ${job.location}. Budget ₦${job.budget}. From CraftSure!`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+          }}
+          style={{flex:1,padding:'12px',background:'#00aa00',color:'white',border:'none',borderRadius:'8px',fontWeight:'bold'}}
+        >
+          🔨 Apply via WhatsApp
+        </button>
+        
+        <button 
+          onClick={async()=>{
+            if(!confirm('Delete this job?')) return;
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${API_URL}/jobs/${job._id}`, { method:'DELETE', headers:{Authorization: token} });
+            if(res.ok){ alert('Deleted!'); fetchJobs(); } else alert('Not allowed');
+          }}
+          style={{padding:'12px 15px',background:'#ff4444',color:'white',border:'none',borderRadius:'8px',fontWeight:'bold'}}
+        >
+          🗑️
+        </button>
+      </div>
     </div>
-  );
-            }
+  </div>
+))}
