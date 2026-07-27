@@ -9,4 +9,4 @@ const jobSchema = new mongoose.Schema({
   status: { type: String, default: 'open' }
 }, { timestamps: true });
 
-module.exports = mongoose.model('Job', jobSchema);
+module.exports = mongoose.models.Job || mongoose.model('Job', jobSchema);
