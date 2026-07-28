@@ -7,14 +7,11 @@ const jobSchema = new mongoose.Schema({
   location: { type: String, required: true },
   budget: { type: Number, required: true },
   photoUrl: { type: String, required: true },
-  image: { type: String }, // for backward compatibility
-  
-  // REAL USER LINK — THIS KILLS "User - User" BUG
+  image: { type: String },
   customerName: { type: String, required: true },
   customerPhone: { type: String },
   customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   customerEmail: { type: String },
-
   status: { type: String, enum: ['open', 'in-progress', 'completed'], default: 'open' },
   views: { type: Number, default: 0 }
 }, { timestamps: true });
