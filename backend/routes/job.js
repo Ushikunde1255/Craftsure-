@@ -1,13 +1,24 @@
 const express = require('express');
-const router = express.Router();
 const multer = require('multer');
-const cloudinary = require('../config/cloudinary');
+const cloudinary = require('cloudinary').v2;
 const Job = require('../models/Job');
 const auth = require('../middleware/auth');
+const router = express.Router();
 
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
+// CLOUDINARY CONFIG
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
-// GET all jobs
+// MULTER - 5MB FIXED!
+const upload = multer({ 
+  storage: multer.memoryStorage(), 
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB CORRECT!
+});
+
+// GET ALL JOBS - Public
 router.get('/', async (req, res) => {
   try {
     const jobs = await Job.find().sort({ createdAt: -1 });
@@ -17,66 +28,48 @@ router.get('/', async (req, res) => {
   }
 });
 
-// POST job with photo REQUIRED
+// POST JOB - Needs Login
 router.post('/', auth, upload.single('photo'), async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ msg: 'Photo is REQUIRED!' });
-    }
-    if (!req.body.description || req.body.description.trim().length < 20) {
-      return res.status(400).json({ msg: 'Describe work well! At least 20 chars' });
-    }
-    if (!req.body.budget || Number(req.body.budget) < 1000) {
-      return res.status(400).json({ msg: 'Budget must be at least ₦1,000' });
-    }
+    if (!req.file) return res.status(400).json({ msg: 'Photo required!' });
 
-    let photoUrl = '';
-    let photoId = '';
-    
-    try {
-      const result = await cloudinary.uploader.upload(
-        `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`,
-        { folder: 'craftsure' }
-      );
-      photoUrl = result.secure_url;
-      photoId = result.public_id;
-    } catch (e) {
-      console.log('Cloudinary error:', e.message);
-      return res.status(500).json({ msg: 'Photo upload failed, try smaller photo: ' + e.message });
-    }
+    // Upload to Cloudinary
+    const b64 = Buffer.from(req.file.buffer).toString('base64');
+    let dataURI = "data:" + req.file.mimetype + ";base64," + b64;
+    const result = await cloudinary.uploader.upload(dataURI, { folder: 'craftsure_jobs' });
 
     const job = new Job({
-      title: req.body.title || req.body.category,
       category: req.body.category,
+      title: req.body.title || req.body.category,
+      description: req.body.description,
       location: req.body.location,
       budget: req.body.budget,
-      description: req.body.description,
-      photoUrl: photoUrl,
-      photoId: photoId,
-      image: photoUrl,
-      customerName: req.user.name || 'User',
-      postedBy: req.user.id,
-      email: req.user.email
+      photoUrl: result.secure_url,
+      image: result.secure_url,
+      // REAL USER FROM TOKEN - NO MORE "User"
+      customerName: req.user.name,
+      customerPhone: req.user.phone,
+      customerId: req.user.id,
+      customerEmail: req.user.email
     });
 
     await job.save();
-    res.json(job);
+    res.status(201).json(job);
   } catch (err) {
     console.log(err);
     res.status(500).json({ msg: err.message });
   }
 });
 
-// DELETE job
+// DELETE JOB - Only owner can delete
 router.delete('/:id', auth, async (req, res) => {
   try {
     const job = await Job.findById(req.params.id);
     if (!job) return res.status(404).json({ msg: 'Job not found' });
 
-    if (job.photoId) {
-      try {
-        await cloudinary.uploader.destroy(job.photoId);
-      } catch (e) {}
+    // Only owner or admin can delete
+    if (job.customerId.toString() !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ msg: 'Not your job!' });
     }
 
     await Job.findByIdAndDelete(req.params.id);
