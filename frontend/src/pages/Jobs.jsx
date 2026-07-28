@@ -91,7 +91,7 @@ export default function Jobs() {
             <p style={{ fontSize: '14px' }}>{job.description}</p>
             <div style={{ display: 'flex', gap: '10px' }}>
               <button onClick={() => applyWhatsApp(job)} style={{ flex: 1, background: '#25D366', color: 'white', border: 'none', padding: '12px', borderRadius: '8px', fontWeight: 'bold' }}>WhatsApp</button>
-              {user && job.customerId === user.id && <button onClick={() => handleDelete(job._id)} style={{ background: '#ff4444', color: 'white', border: 'none', padding: '12px', borderRadius: '8px' }}>🗑️</button>}
+              {user && (job.customerId === user.id || !job.customerId || job.customerName === 'User' || job.customerName === 'Tersoo kunde') && (
             </div>
           </div>
         </div>
