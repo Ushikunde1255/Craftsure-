@@ -1,70 +1,61 @@
 const express = require('express');
+const router = express.Router();
 const multer = require('multer');
-const cloudinary = require('cloudinary').v2;
 const Job = require('../models/Job');
 const auth = require('../middleware/auth');
-const router = express.Router();
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
-});
-
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024}
-});
-
-router.get('/', async (req, res) => {
-  try {
-    const jobs = await Job.find().sort({ createdAt: -1 });
-    res.json(jobs);
-  } catch (err) {
-    res.status(500).json({ msg: err.message });
+// 5MB FIX - CORRECT!
+const storage = multer.memoryStorage();
+const upload = multer({ 
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req,file,cb)=>{
+    if(file.mimetype.startsWith('image/')) cb(null,true);
+    else cb(new Error('Only images'),false);
   }
 });
 
-router.post('/', auth, upload.single('photo'), async (req, res) => {
-  try {
-    if (!req.file) return res.status(400).json({ msg: 'Photo required!' });
+// GET - public
+router.get('/', async (req,res)=>{
+  try{
+    const jobs = await Job.find().sort({createdAt:-1});
+    res.json(jobs);
+  }catch(e){ res.status(500).json({msg:e.message}); }
+});
 
-    const b64 = Buffer.from(req.file.buffer).toString('base64');
-    let dataURI = "data:" + req.file.mimetype + ";base64," + b64;
-    const result = await cloudinary.uploader.upload(dataURI, { folder: 'craftsure_jobs' });
-
+// POST - needs login + photo
+router.post('/', auth, upload.single('photo'), async (req,res)=>{
+  try{
+    if(!req.file) return res.status(400).json({msg:'Photo REQUIRED!'});
+    const photoUrl = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
     const job = new Job({
       category: req.body.category,
-      title: req.body.title || req.body.category,
+      title: req.body.title,
       description: req.body.description,
       location: req.body.location,
-      budget: req.body.budget,
-      photoUrl: result.secure_url,
-      image: result.secure_url,
-      customerName: req.user.name,
-      customerPhone: req.user.phone,
+      budget: Number(req.body.budget),
+      photoUrl: photoUrl,
+      image: photoUrl,
       customerId: req.user.id,
-      customerEmail: req.user.email
+      customerName: req.user.name,
+      customerPhone: req.user.phone
     });
-
     await job.save();
     res.status(201).json(job);
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ msg: err.message });
-  }
+  }catch(e){ res.status(500).json({msg:e.message}); }
 });
 
-// DELETE - Allow owner OR allow deleting old "User" jobs (cleanup)
+// DELETE - owner or old User jobs cleanup
 router.delete('/:id', auth, async (req,res)=>{
   try{
     const job = await Job.findById(req.params.id);
     if(!job) return res.status(404).json({msg:'Not found'});
-    // Allow if: owner matches OR job is old User job (no real owner) OR name is "User"
-    const isOwner = job.customerId === req.user.id;
-    const isOldUserJob = !job.customerId || job.customerName === 'User' || job.customerName === 'Tersoo kunde';
-    if(!isOwner && !isOldUserJob) return res.status(403).json({msg:'Not your job'});
+    const isOwner = job.customerId && job.customerId.toString() === req.user.id;
+    const isOld = !job.customerId || job.customerName==='User' || job.customerName==='Tersoo kunde' || job.customerName==='test';
+    if(!isOwner && !isOld) return res.status(403).json({msg:'Not your job'});
     await Job.findByIdAndDelete(req.params.id);
     res.json({msg:'Deleted'});
   }catch(e){ res.status(500).json({msg:e.message}); }
 });
+
+module.exports = router;
