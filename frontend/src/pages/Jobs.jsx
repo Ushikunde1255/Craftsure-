@@ -26,10 +26,13 @@ export default function Jobs() {
     fetchJobs();
   }, []);
 
+  // FIXED PHOTO LOGIC HERE
   const handlePhoto = (e) => {
     const file = e.target.files[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
+        return alert('Photo too big! Max 5MB - pick smaller photo from camera');
+      }
       setPhoto(file);
       setPreview(URL.createObjectURL(file));
     }
@@ -44,7 +47,7 @@ export default function Jobs() {
       return alert('Budget must be at least ₦1,000!');
     }
     if (!photo) {
-      return alert('Photo is REQUIRED! Tap the dashed box to add house/hairstyle image!');
+      return alert('Photo is REQUIRED! Tap the dashed box to add image!');
     }
 
     const formData = new FormData();
@@ -85,7 +88,7 @@ export default function Jobs() {
   };
 
   const deleteJob = async (id) => {
-    if (!window.confirm('Delete this job permanently?')) return;
+    if (!window.confirm('Delete this job?')) return;
     const token = localStorage.getItem('token');
     try {
       const res = await fetch(`${API_URL}/jobs/${id}`, {
@@ -104,7 +107,7 @@ export default function Jobs() {
   };
 
   return (
-    <div style={{ maxWidth: '600px', margin: '0 auto', padding: '15px', background: '#f8ff', minHeight: '100vh' }}>
+    <div style={{ maxWidth: '600px', margin: '0 auto', padding: '15px', background: '#ffe0ff', minHeight: '100vh' }}>
       {/* POST FORM */}
       <div style={{ background: 'white', padding: '20px', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
         <h2 style={{ margin: '0 0 15px 0' }}>📢 Post a Real Job (Open for All)</h2>
@@ -209,7 +212,7 @@ export default function Jobs() {
             boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
           }}
         >
-          {(job.photoUrl || job.image) ? (
+          {job.photoUrl || job.image ? (
             <img src={job.photoUrl || job.image} alt="job" style={{ width: '100%', height: '240px', objectFit: 'cover' }} />
           ) : (
             <div
@@ -274,4 +277,4 @@ export default function Jobs() {
       ))}
     </div>
   );
-}
+          }
