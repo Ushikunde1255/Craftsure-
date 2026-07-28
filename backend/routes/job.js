@@ -5,7 +5,7 @@ const cloudinary = require('../config/cloudinary');
 const Job = require('../models/Job');
 const auth = require('../middleware/auth');
 
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 } });
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
 // GET all jobs
 router.get('/', async (req, res) => {
