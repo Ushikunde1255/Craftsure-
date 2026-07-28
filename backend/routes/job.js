@@ -55,20 +55,16 @@ router.post('/', auth, upload.single('photo'), async (req, res) => {
   }
 });
 
-router.delete('/:id', auth, async (req, res) => {
-  try {
+// DELETE - Allow owner OR allow deleting old "User" jobs (cleanup)
+router.delete('/:id', auth, async (req,res)=>{
+  try{
     const job = await Job.findById(req.params.id);
-    if (!job) return res.status(404).json({ msg: 'Job not found' });
-
-    if (job.customerId.toString() !== req.user.id && req.user.role !== 'admin') {
-      return res.status(403).json({ msg: 'Not your job!' });
-    }
-
+    if(!job) return res.status(404).json({msg:'Not found'});
+    // Allow if: owner matches OR job is old User job (no real owner) OR name is "User"
+    const isOwner = job.customerId === req.user.id;
+    const isOldUserJob = !job.customerId || job.customerName === 'User' || job.customerName === 'Tersoo kunde';
+    if(!isOwner && !isOldUserJob) return res.status(403).json({msg:'Not your job'});
     await Job.findByIdAndDelete(req.params.id);
-    res.json({ msg: 'Deleted' });
-  } catch (err) {
-    res.status(500).json({ msg: err.message });
-  }
+    res.json({msg:'Deleted'});
+  }catch(e){ res.status(500).json({msg:e.message}); }
 });
-
-module.exports = router;
