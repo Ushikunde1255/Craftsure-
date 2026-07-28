@@ -2,55 +2,52 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const { registerValidation, loginValidation, validate } = require('../middleware/validation');
-
 const router = express.Router();
 
 // REGISTER
-router.post('/register', registerValidation, validate, async (req, res) => {
+router.post('/register', async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
-    let user = await User.findOne({ email });
-    if (user) return res.status(400).json({ msg: 'User already exists' });
+    const { name, email, phone, password, role, location, skill } = req.body;
+    if (!name || !email || !phone || !password) return res.status(400).json({ msg: 'All fields required!' });
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    user = await User.create({ name, email, password: hashedPassword, role });
+    let user = await User.findOne({ email });
+    if (user) return res.status(400).json({ msg: 'Email already exists!' });
+
+    const hashed = await bcrypt.hash(password, 10);
+    user = new User({ name, email, phone, password: hashed, role, location, skill });
+    await user.save();
 
     const token = jwt.sign(
-      { id: user._id, role: user.role },
-      process.env.JWT_SECRET,
+      { id: user._id, name: user.name, email: user.email, phone: user.phone, role: user.role },
+      process.env.JWT_SECRET || 'craftsure_secret_2024',
       { expiresIn: '7d' }
     );
 
-    console.log("REGISTER SUCCESS:", user.email);
-    res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+    res.json({ token, user: { id: user._id, name: user.name, email: user.email, phone: user.phone, role: user.role } });
   } catch (err) {
-    console.log("REGISTER ERROR:", err.message);
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ msg: err.message });
   }
 });
 
 // LOGIN
-router.post('/login', loginValidation, validate, async (req, res) => {
+router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email }).select('+password');
-    if (!user) return res.status(400).json({ msg: 'Invalid credentials' });
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ msg: 'User not found!' });
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ msg: 'Invalid credentials' });
+    if (!isMatch) return res.status(400).json({ msg: 'Wrong password!' });
 
     const token = jwt.sign(
-      { id: user._id, role: user.role },
-      process.env.JWT_SECRET,
+      { id: user._id, name: user.name, email: user.email, phone: user.phone, role: user.role },
+      process.env.JWT_SECRET || 'craftsure_secret_2024',
       { expiresIn: '7d' }
     );
 
-    console.log("LOGIN SUCCESS:", user.email);
-    res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+    res.json({ token, user: { id: user._id, name: user.name, email: user.email, phone: user.phone, role: user.role, location: user.location } });
   } catch (err) {
-    console.log("LOGIN ERROR:", err.message);
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ msg: err.message });
   }
 });
 
