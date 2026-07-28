@@ -1,115 +1,97 @@
-import { useState, useEffect, useRef } from 'react';
-
+import { useState, useEffect } from 'react';
 const API_URL = 'https://craftsure-1.onrender.com/api';
 
 export default function Jobs() {
   const [jobs, setJobs] = useState([]);
-  const [category, setCategory] = useState('Carpentry');
-  const [location, setLocation] = useState('Makurdi, Benue');
-  const [budget, setBudget] = useState('');
-  const [desc, setDesc] = useState('');
+  const [form, setForm] = useState({ category: 'Carpentry', title: '', description: '', location: 'Makurdi, Benue', budget: '' });
   const [photo, setPhoto] = useState(null);
-  const [preview, setPreview] = useState('');
-  const fileRef = useRef(null);
+  const [preview, setPreview] = useState(null);
+  const user = JSON.parse(localStorage.getItem('user') || 'null');
+  const token = localStorage.getItem('token');
 
+  useEffect(() => { fetchJobs(); }, []);
   const fetchJobs = async () => {
     try {
       const res = await fetch(`${API_URL}/jobs`);
       const data = await res.json();
-      setJobs(Array.isArray(data) ? data.reverse() : []);
-    } catch (e) { console.log(e); }
+      setJobs(Array.isArray(data) ? data : data.jobs || []);
+    } catch {}
   };
 
-  useEffect(() => { fetchJobs(); }, []);
-
-  // FIXED: 5MB = 5 * 1024 * 1024
-  const handlePhoto = (e) => {
+  const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      return alert('Photo too big! Go to Gallery > Open photo > Take SCREENSHOT of it > Use screenshot!');
-    }
+    if (file.size > 5 * 1024 * 1024) return alert('Photo too big! Max 5MB. Use smaller photo.');
     setPhoto(file);
     setPreview(URL.createObjectURL(file));
   };
 
-  const postJob = async (e) => {
+  const handlePost = async (e) => {
     e.preventDefault();
-    if (desc.trim().length < 20) return alert('Describe work! Min 20 chars');
-    if (!budget || Number(budget) < 1000) return alert('Budget min ₦1,000');
-    if (!photo) return alert('Photo REQUIRED! Tap box!');
-
-    const formData = new FormData();
-    formData.append('category', category);
-    formData.append('title', category);
-    formData.append('location', location);
-    formData.append('budget', budget);
-    formData.append('description', desc);
-    formData.append('photo', photo);
-
-    const token = localStorage.getItem('token');
+    if (!token) return alert('Please Login first!');
+    if (!photo) return alert('📸 Photo REQUIRED!');
+    if (form.description.length < 20) return alert('Describe work more (20 chars min)');
+    if (Number(form.budget) < 1000) return alert('Budget min ₦1,000');
+    const fd = new FormData();
+    fd.append('category', form.category);
+    fd.append('title', form.title || form.category + ' work');
+    fd.append('description', form.description);
+    fd.append('location', form.location);
+    fd.append('budget', form.budget);
+    fd.append('photo', photo);
     try {
-      const res = await fetch(`${API_URL}/jobs`, {
-        method: 'POST',
-        headers: { Authorization: token },
-        body: formData,
-      });
+      const res = await fetch(`${API_URL}/jobs`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: fd });
       const data = await res.json();
       if (res.ok) {
-        alert('✅ Job with photo posted!');
-        setDesc(''); setBudget(''); setPhoto(null); setPreview('');
+        alert(`✅ Posted as ${user?.name}!`);
+        setForm({ category: 'Carpentry', title: '', description: '', location: 'Makurdi, Benue', budget: '' });
+        setPhoto(null); setPreview(null);
         fetchJobs();
-      } else {
-        alert(data.msg || 'Failed');
-      }
-    } catch (err) {
-      alert('Backend sleeping, wait 30sec then try again');
-    }
+      } else alert(data.msg);
+    } catch { alert('Backend waking, wait 30s'); }
   };
 
-  const deleteJob = async (id) => {
-    if (!confirm('Delete this job?')) return;
-    const token = localStorage.getItem('token');
-    const res = await fetch(`${API_URL}/jobs/${id}`, { method: 'DELETE', headers: { Authorization: token } });
-    if (res.ok) setJobs(jobs.filter(j => j._id !== id));
+  const handleDelete = async (id) => {
+    if (!confirm('Delete?')) return;
+    await fetch(`${API_URL}/jobs/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+    fetchJobs();
+  };
+
+  const applyWhatsApp = (job) => {
+    const msg = `Hello ${job.customerName}, I saw your ${job.category} job in ${job.location} for ₦${job.budget?.toLocaleString()} on CraftSure. I am ${user?.name || 'Artisan'}, I can do it.`;
+    const phone = job.customerPhone ? `234${job.customerPhone.slice(1)}` : '2349035913363';
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
   return (
-    <div style={{ maxWidth: '600px', margin: '0 auto', padding: '15px', background: '#f5f3ff', minHeight: '100vh' }}>
-      <form onSubmit={postJob} style={{ background: 'white', padding: '20px', borderRadius: '12px' }}>
-        <h2 style={{ margin: '0 0 15px 0' }}>📢 Post Real Job</h2>
-        
-        <select value={category} onChange={e=>setCategory(e.target.value)} style={{ width:'100%', padding:'14px', margin:'8px 0', borderRadius:'8px', border:'1px solid #ccc', fontSize:'16px' }}>
-          <option>Carpentry</option><option>Electrical</option><option>Plumbing</option><option>Masonry</option><option>Welding</option><option>Painting</option><option>Tailoring</option><option>Hair Dressing</option><option>Other</option>
+    <div style={{ maxWidth: '700px', margin: '20px auto', padding: '10px' }}>
+      <div style={{ background: 'white', padding: '20px', borderRadius: '12px', marginBottom: '20px' }}>
+        <h3>Post Job</h3>
+        {user && <p style={{ color: 'green', fontSize: '12px' }}>Posting as: {user.name}</p>}
+        <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} style={inputStyle}>
+          <option>Carpentry</option><option>Masonry</option><option>Electrical</option><option>Plumbing</option><option>Welding</option><option>Painting</option><option>Tailoring</option><option>Hair Dressing</option>
         </select>
-
-        <input value={location} onChange={e=>setLocation(e.target.value)} placeholder="Location" style={{ width:'100%', padding:'14px', margin:'8px 0', borderRadius:'8px', border:'1px solid #ccc', fontSize:'16px' }} required />
-        
-        <input type="number" value={budget} onChange={e=>setBudget(e.target.value)} placeholder="Budget e.g. 800000" style={{ width:'100%', padding:'14px', margin:'8px 0', borderRadius:'8px', border:'1px solid #ccc', fontSize:'16px' }} required />
-
-        <input type="file" ref={fileRef} accept="image/*" onChange={handlePhoto} style={{ display:'none' }} />
-        <div onClick={()=>fileRef.current.click()} style={{ border:'2px dashed #5a31f5', padding:'20px', textAlign:'center', borderRadius:'10px', margin:'10px 0', cursor:'pointer', background: preview ? '#f0f0ff' : 'white' }}>
-          {preview ? <img src={preview} style={{ width:'100%', maxHeight:'220px', objectFit:'cover', borderRadius:'8px' }} /> : <b>📷 Tap to Add Photo - REQUIRED (Max 5MB)</b>}
+        <input placeholder="Title" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} style={inputStyle} />
+        <textarea placeholder="Description - min 20 chars" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} style={{ ...inputStyle, height: '80px' }} />
+        <input placeholder="Location" value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} style={inputStyle} />
+        <input type="number" placeholder="Budget" value={form.budget} onChange={e => setForm({ ...form, budget: e.target.value })} style={inputStyle} />
+        <div style={{ border: '2px dashed #5a31f5', padding: '15px', borderRadius: '10px', textAlign: 'center' }}>
+          <input type="file" accept="image/*" onChange={handlePhotoChange} />
+          {preview && <img src={preview} style={{ width: '100%', maxHeight: '200px', marginTop: '10px', borderRadius: '8px' }} alt="preview" />}
         </div>
+        <button onClick={handlePost} style={btnStyle}>Post Job as {user?.name || 'Guest'}</button>
+      </div>
 
-        <textarea value={desc} onChange={e=>setDesc(e.target.value)} placeholder="Describe work ONLY - don't add budget here!" style={{ width:'100%', padding:'14px', height:'110px', borderRadius:'8px', border:'1px solid #ccc', fontSize:'16px' }} required></textarea>
-
-        <button type="submit" style={{ width:'100%', padding:'16px', background:'#5a31f5', color:'white', border:'none', borderRadius:'10px', fontWeight:'bold', fontSize:'16px', marginTop:'10px' }}>
-          Post Job - {budget ? `₦${Number(budget).toLocaleString()}` : '₦0'}
-        </button>
-      </form>
-
-      <h2 style={{ margin:'25px 0 15px 0' }}>All Jobs ({jobs.length})</h2>
-      {jobs.map(job=>(
-        <div key={job._id} style={{ background:'white', borderRadius:'12px', marginBottom:'15px', overflow:'hidden', boxShadow:'0 2px 8px #0001' }}>
-          {(job.photoUrl || job.image) && <img src={job.photoUrl || job.image} style={{ width:'100%', height:'300px', objectFit:'cover' }} alt="job" />}
-          <div style={{ padding:'15px' }}>
-            <h3 style={{ margin:0 }}>{job.category}</h3>
-            <p style={{ fontSize:'14px', margin:'8px 0' }}>{job.description}</p>
-            <p style={{ color:'#5a31f5', fontWeight:'bold' }}>₦{Number(job.budget).toLocaleString()} - User - {job.location}</p>
-            <div style={{ display:'flex', gap:'10px', marginTop:'12px' }}>
-              <button onClick={()=>window.open(`https://wa.me/?text=${encodeURIComponent(`Hello, I want to apply for your ${job.category} job in ${job.location} for ₦${job.budget} on CraftSure`)}`,'_blank')} style={{ flex:1, padding:'12px', background:'#00a884', color:'white', border:'none', borderRadius:'8px', fontWeight:'bold' }}>💬 Apply via WhatsApp</button>
-              <button onClick={()=>deleteJob(job._id)} style={{ padding:'12px 16px', background:'#ff3b30', color:'white', border:'none', borderRadius:'8px' }}>🗑️</button>
+      <h3>All Jobs ({jobs.length})</h3>
+      {jobs.map(job => (
+        <div key={job._id} style={{ background: 'white', borderRadius: '12px', marginBottom: '15px', overflow: 'hidden' }}>
+          {(job.photoUrl || job.image) && <img src={job.photoUrl || job.image} style={{ width: '100%', height: '220px', objectFit: 'cover' }} alt="job" />}
+          <div style={{ padding: '15px' }}>
+            <h4 style={{ margin: 0 }}>₦{job.budget?.toLocaleString()} - {job.customerName || 'User'} - {job.location}</h4>
+            <p style={{ fontSize: '14px' }}>{job.description}</p>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={() => applyWhatsApp(job)} style={{ flex: 1, background: '#25D366', color: 'white', border: 'none', padding: '12px', borderRadius: '8px', fontWeight: 'bold' }}>WhatsApp</button>
+              {user && job.customerId === user.id && <button onClick={() => handleDelete(job._id)} style={{ background: '#ff4444', color: 'white', border: 'none', padding: '12px', borderRadius: '8px' }}>🗑️</button>}
             </div>
           </div>
         </div>
@@ -117,3 +99,5 @@ export default function Jobs() {
     </div>
   );
 }
+const inputStyle = { width: '100%', padding: '12px', margin: '6px 0', borderRadius: '8px', border: '1px solid #ddd', fontSize: '15px', boxSizing: 'border-box' };
+const btnStyle = { width: '100%', padding: '15px', background: '#5a31f5', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 'bold', fontSize: '16px', marginTop: '10px' };
