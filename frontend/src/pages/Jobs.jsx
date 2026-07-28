@@ -29,9 +29,7 @@ export default function Jobs() {
   const handlePhoto = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 5 * 1024) {
-        return alert('Photo too big! Max 5MB');
-      }
+      if (file.size > 5 * 1024 * 1024) {
       setPhoto(file);
       setPreview(URL.createObjectURL(file));
     }
