@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 export default function Home() {
   const user = JSON.parse(localStorage.getItem('user') || 'null');
   return (
@@ -6,8 +8,8 @@ export default function Home() {
         <h1 style={{ fontSize: '32px', margin: '0 0 10px' }}>Find Trusted Artisans in 2 Minutes 🇳🇬</h1>
         <p style={{ fontSize: '18px', opacity: 0.9 }}>No more fake artisans. Real people, real photos, real WhatsApp</p>
         <div style={{ marginTop: '25px', display: 'flex', gap: '12px', justifyContent: 'center' }}>
-          <a href="/jobs" style={{ background: 'white', color: '#5a31f5', padding: '14px 28px', borderRadius: '12px', fontWeight: 'bold', textDecoration: 'none' }}>Find Artisan</a>
-          <a href="/post" style={{ background: '#25D366', color: 'white', padding: '14px 28px', borderRadius: '12px', fontWeight: 'bold', textDecoration: 'none' }}>Post Job Free</a>
+          <Link to="/artisans" style={{ background: 'white', color: '#5a31f5', padding: '14px 28px', borderRadius: '12px', fontWeight: 'bold', textDecoration: 'none' }}>Find Artisan</Link>
+          <Link to="/post" style={{ background: '#25D366', color: 'white', padding: '14px 28px', borderRadius: '12px', fontWeight: 'bold', textDecoration: 'none' }}>Post Job Free</Link>
         </div>
         {user && <p style={{ marginTop: '20px', fontSize: '16px' }}>Welcome back, {user.name}! You have posted jobs with real name.</p>}
       </div>
@@ -22,11 +24,11 @@ export default function Home() {
         <h3>How It Works</h3>
         <div style={{ display: 'flex', gap: '15px', marginTop: '15px' }}>
           <div style={{ flex: 1, background: 'white', padding: '15px', borderRadius: '12px' }}><b>1. Post</b><p style={{ fontSize: '13px' }}>Take photo of work, add budget</p></div>
-          <div style={{ flex: 1, background: 'white', padding: '15px', borderRadius: '12px' }}><b>2. Get WhatsApp</b><p style={{ fontSize: '13px' }}>Artisans message you directly</p></div>
-          <div style={{ flex: 1, background: 'white', padding: '15px', borderRadius: '12px' }}><b>3. Done</b><p style={{ fontSize: '13px' }}>Pay after work completed</p></div>
+          <div style={{ flex: 1, background: 'white', padding: '15px', borderRadius: '12px' }}><b>2. Get WhatsApp</b><p style={{ fontSize: '13px' }}>Artisans message you</p></div>
+          <div style={{ flex: 1, background: 'white', padding: '15px', borderRadius: '12px' }}><b>3. Done</b><p style={{ fontSize: '13px' }}>Pay after work</p></div>
         </div>
-        <a href="/jobs" style={{ display: 'block', marginTop: '20px', background: '#5a31f5', color: 'white', textAlign: 'center', padding: '16px', borderRadius: '12px', textDecoration: 'none', fontWeight: 'bold' }}>Browse All Jobs →</a>
+        <Link to="/jobs" style={{ display: 'block', marginTop: '20px', background: '#5a31f5', color: 'white', textAlign: 'center', padding: '16px', borderRadius: '12px', textDecoration: 'none', fontWeight: 'bold' }}>Browse All Jobs →</Link>
       </div>
     </div>
   );
-}
+      }
