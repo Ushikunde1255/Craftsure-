@@ -50,5 +50,14 @@ router.post('/login', async (req, res) => {
     res.status(500).json({ msg: err.message });
   }
 });
+// List all registered artisans - for Artisans directory
+router.get('/users', async (req, res) => {
+  try {
+    const users = await User.find({}, 'name phone skill category location').sort({ createdAt: -1 });
+    res.json(users);
+  } catch (e) {
+    res.json([]);
+  }
+});
 
 module.exports = router;
