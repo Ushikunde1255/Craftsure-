@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import Home from './pages/Home';
 import Jobs from './pages/Jobs';
+import Artisans from './pages/Artisans';
 import PostJob from './pages/PostJob';
 import Login from './pages/Login';
 import Register from './pages/Register';
