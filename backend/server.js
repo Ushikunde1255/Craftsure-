@@ -88,6 +88,8 @@ app.get('/', (req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/jobs', jobRoutes);
+const portfolioRoutes = require('./routes/portfolio');
+app.use('/api/portfolio', portfolioRoutes);
 app.use('/api/upload', require('./routes/upload'));
 app.use('/api/payments', paymentRoutes);
 app.use('/api/webhooks', webhookRoutes);
