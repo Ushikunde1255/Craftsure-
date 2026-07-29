@@ -16,12 +16,24 @@ const upload = multer({
 });
 
 // GET - public
-router.get('/', async (req,res)=>{
-  try{
-    const jobs = await Job.find().sort({createdAt:-1});
-    res.json(jobs);
-  }catch(e){ res.status(500).json({msg:e.message}); }
+// GET ALL JOBS - Show all, newest first, no filter
+router.get('/', async (req, res) => {
+  try {
+    const jobs = await Job.find().sort({ createdAt: -1 }).populate('user', 'name phone');
+    // Map to include customerName/Phone from user if missing
+    const enriched = jobs.map(j => ({
+      ...j._doc,
+      customerName: j.customerName || j.user?.name || 'Client',
+      customerPhone: j.customerPhone || j.user?.phone || '',
+      photoUrl: j.photoUrl || j.image || j.photo
+    }));
+    res.json(enriched);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ msg: e.message });
+  }
 });
+
 
 // POST - needs login + photo
 router.post('/', auth, upload.single('photo'), async (req,res)=>{
