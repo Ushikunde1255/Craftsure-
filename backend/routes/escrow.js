@@ -1,12 +1,13 @@
 const express = require('express');
 const EscrowJob = require('../models/EscrowJob');
+const Chat = require('../models/Chat');
+const Rating = require('../models/Rating');
 const router = express.Router();
 
-// 1. Client funds job - create escrow WITH CRAFTSURE FEE! 5% + 10% = 15% YOUR MONEY!
+// 1. Client funds job - create escrow WITH FEE 5%+10%=15%
 router.post('/create', async (req,res)=>{
   try{
     const { jobId, jobTitle, clientId, clientName, artisanId, artisanName, artisanPhone, totalAmount } = req.body;
-
     const artisanPrice = Number(totalAmount) || 100000;
     const clientFeePercent = 5;
     const artisanFeePercent = 10;
@@ -25,16 +26,12 @@ router.post('/create', async (req,res)=>{
       m100: { percent:25, craftsureAmount: Math.round(craftsureProfit*0.25), artisanAmount: Math.round(totalReceivedByArtisan*0.25), status:'pending', evidencePhotos:[] },
       overallStatus:'funded'
     });
-
     await escrow.save();
     res.json(escrow);
-  }catch(e){
-    console.log(e);
-    res.status(500).json({error:e.message});
-  }
+  }catch(e){ res.status(500).json({error:e.message}); }
 });
 
-// 2. Artisan uploads evidence for 35% / 75% / 100%
+// 2. Upload evidence
 router.post('/upload/:id/:stage', async (req,res)=>{
   const { photos } = req.body;
   const escrow = await EscrowJob.findById(req.params.id);
@@ -45,22 +42,18 @@ router.post('/upload/:id/:stage', async (req,res)=>{
   res.json(escrow);
 });
 
-// 3. Client APPROVES milestone
+// 3. Approve
 router.post('/approve/:id/:stage', async (req,res)=>{
   const escrow = await EscrowJob.findById(req.params.id);
   escrow[req.params.stage].status = 'paid';
   escrow[req.params.stage].approvedAt = new Date();
-  if(req.params.stage==='m100') escrow.overallStatus = 'completed';
-  else escrow.overallStatus = 'in_progress';
+  if(req.params.stage==='m100') escrow.overallStatus='completed';
+  else escrow.overallStatus='in_progress';
   await escrow.save();
-
-  const percent = escrow[req.params.stage].percent;
-  const payAmount = escrow[req.params.stage].artisanAmount;
-
-  res.json({ message:`${percent}% approved! Pay ₦${payAmount} to artisan`, escrow, payAmount });
+  res.json({ message:`${escrow[req.params.stage].percent}% approved! Pay ₦${escrow[req.params.stage].artisanAmount} to artisan`, escrow, payAmount: escrow[req.params.stage].artisanAmount });
 });
 
-// 4. Get all escrows for artisan or client
+// 4. My escrows
 router.get('/my/:userId', async (req,res)=>{
   const jobs = await EscrowJob.find({ $or:[{clientId:req.params.userId},{artisanId:req.params.userId}] }).sort({createdAt:-1});
   res.json(jobs);
@@ -70,7 +63,8 @@ router.get('/:id', async (req,res)=>{
   const job = await EscrowJob.findById(req.params.id);
   res.json(job);
 });
-// 5. ADMIN STATS - Total profit dashboard!
+
+// 5. Admin stats
 router.get('/admin/stats', async (req,res)=>{
   const all = await EscrowJob.find();
   const totalProfit = all.reduce((sum,j)=> sum + (j.craftsureProfit||0), 0);
@@ -79,35 +73,19 @@ router.get('/admin/stats', async (req,res)=>{
   const totalArtisanPaid = all.reduce((sum,j)=> sum + (j.totalReceivedByArtisan||0), 0);
   const completed = all.filter(j=>j.overallStatus==='completed').length;
   const pending = all.filter(j=>j.m35?.status==='uploaded' || j.m75?.status==='uploaded' || j.m100?.status==='uploaded').length;
-
-  res.json({
-    totalJobs: all.length,
-    totalProfit,
-    totalClientFee,
-    totalArtisanFee,
-    totalArtisanPaid,
-    completed,
-    pending,
-    allJobs: all.slice(0,50) // last 50
-  });
+  res.json({ totalJobs: all.length, totalProfit, totalClientFee, totalArtisanFee, totalArtisanPaid, completed, pending, allJobs: all.slice(0,50) });
 });
-// 6. CHAT - Client & Artisan chat INSIDE CraftSure (Admin can spy!)
-const Chat = require('../models/Chat');
-const Rating = require('../models/Rating');
 
-// Create or get chat for escrow
+// 6. CHAT - Anti-bypass!
 router.post('/chat/:escrowId', async (req,res)=>{
   const { clientId, clientName, artisanId, artisanName, jobId, jobTitle, senderId, senderName, text } = req.body;
-
-  // ANTI-BYPASS: Detect phone numbers
   const phoneRegex = /(\+?234|0)?[789][01]\d{8}|\+233\d{9}|.*\d{10,}.*/;
   const isPhoneAttempt = phoneRegex.test(text) || text.toLowerCase().includes('whatsapp') || text.toLowerCase().includes('call me');
-
   let chat = await Chat.findOne({ escrowId: req.params.escrowId });
   if (!chat) {
     chat = new Chat({ escrowId: req.params.escrowId, jobId, jobTitle, clientId, clientName, artisanId, artisanName, messages: [] });
   }
-  chat.messages.push({ senderId, senderName, text: isPhoneAttempt? text + ' [⚠️ PHONE ATTEMPT BLOCKED - Pay 5% fee to unlock phone!]' : text, senderName, isPhoneAttempt });
+  chat.messages.push({ senderId, senderName, text: isPhoneAttempt? text + ' [⚠️ PHONE ATTEMPT - Admin sees this!]' : text, isPhoneAttempt });
   await chat.save();
   res.json(chat);
 });
@@ -117,62 +95,12 @@ router.get('/chat/:escrowId', async (req,res)=>{
   res.json(chat || { messages: [] });
 });
 
-// ADMIN CAN READ ALL CHATS! 👮
 router.get('/admin/chats', async (req,res)=>{
   const chats = await Chat.find().sort({ createdAt: -1 }).limit(50);
   res.json(chats);
 });
 
-// RATING - After 100% completion
-router.post('/rate', async (req,res)=>{
-  const { artisanId, artisanName, clientId, clientName, escrowId, jobTitle, stars, comment } = req.body;
-  const rating = new Rating({ artisanId, artisanName, clientId, clientName, escrowId, jobTitle, stars, comment });
-  await rating.save();
-  res.json(rating);
-});
-
-router.get('/ratings/:artisanId', async (req,res)=>{
-  const ratings = await Rating.find({ artisanId: req.params.artisanId });
-  const avg = ratings.length? (ratings.reduce((s,r)=>s+r.stars,0)/ratings.length).toFixed(1) : 0;
-  res.json({ ratings, avg, count: ratings.length });
-});
-
-router.get('/admin/ratings', async (req,res)=>{
-  const ratings = await Rating.find().sort({ createdAt: -1 });
-  res.json(ratings);
-});// 6. CHAT - Client & Artisan chat INSIDE CraftSure (Admin can spy!)
-const Chat = require('../models/Chat');
-const Rating = require('../models/Rating');
-
-// Create or get chat for escrow
-router.post('/chat/:escrowId', async (req,res)=>{
-  const { clientId, clientName, artisanId, artisanName, jobId, jobTitle, senderId, senderName, text } = req.body;
-
-  // ANTI-BYPASS: Detect phone numbers
-  const phoneRegex = /(\+?234|0)?[789][01]\d{8}|\+233\d{9}|.*\d{10,}.*/;
-  const isPhoneAttempt = phoneRegex.test(text) || text.toLowerCase().includes('whatsapp') || text.toLowerCase().includes('call me');
-
-  let chat = await Chat.findOne({ escrowId: req.params.escrowId });
-  if (!chat) {
-    chat = new Chat({ escrowId: req.params.escrowId, jobId, jobTitle, clientId, clientName, artisanId, artisanName, messages: [] });
-  }
-  chat.messages.push({ senderId, senderName, text: isPhoneAttempt? text + ' [⚠️ PHONE ATTEMPT BLOCKED - Pay 5% fee to unlock phone!]' : text, senderName, isPhoneAttempt });
-  await chat.save();
-  res.json(chat);
-});
-
-router.get('/chat/:escrowId', async (req,res)=>{
-  const chat = await Chat.findOne({ escrowId: req.params.escrowId });
-  res.json(chat || { messages: [] });
-});
-
-// ADMIN CAN READ ALL CHATS! 👮
-router.get('/admin/chats', async (req,res)=>{
-  const chats = await Chat.find().sort({ createdAt: -1 }).limit(50);
-  res.json(chats);
-});
-
-// RATING - After 100% completion
+// 7. RATING
 router.post('/rate', async (req,res)=>{
   const { artisanId, artisanName, clientId, clientName, escrowId, jobTitle, stars, comment } = req.body;
   const rating = new Rating({ artisanId, artisanName, clientId, clientName, escrowId, jobTitle, stars, comment });
@@ -190,4 +118,5 @@ router.get('/admin/ratings', async (req,res)=>{
   const ratings = await Rating.find().sort({ createdAt: -1 });
   res.json(ratings);
 });
+
 module.exports = router;
