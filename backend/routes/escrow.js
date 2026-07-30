@@ -2,17 +2,41 @@ const express = require('express');
 const EscrowJob = require('../models/EscrowJob');
 const router = express.Router();
 
-// 1. Client funds job - create escrow
+// 1. Client funds job - create escrow WITH CRAFTSURE FEE! 5% + 10% = 15% YOUR MONEY!
 router.post('/create', async (req,res)=>{
-  const { jobId, jobTitle, clientId, clientName, artisanId, artisanName, artisanPhone, totalAmount } = req.body;
-  const escrow = new EscrowJob({ jobId, jobTitle, clientId, clientName, artisanId, artisanName, artisanPhone, totalAmount });
-  await escrow.save();
-  res.json(escrow);
+  try{
+    const { jobId, jobTitle, clientId, clientName, artisanId, artisanName, artisanPhone, totalAmount } = req.body;
+
+    const artisanPrice = Number(totalAmount) || 100000;
+    const clientFeePercent = 5;
+    const artisanFeePercent = 10;
+    const clientFee = Math.round(artisanPrice * clientFeePercent / 100);
+    const artisanFee = Math.round(artisanPrice * artisanFeePercent / 100);
+    const totalPaidByClient = artisanPrice + clientFee;
+    const totalReceivedByArtisan = artisanPrice - artisanFee;
+    const craftsureProfit = clientFee + artisanFee;
+
+    const escrow = new EscrowJob({
+      jobId, jobTitle, clientId, clientName, artisanId, artisanName, artisanPhone,
+      artisanPrice, clientFeePercent, artisanFeePercent, clientFee, artisanFee,
+      totalPaidByClient, totalReceivedByArtisan, craftsureProfit,
+      m35: { percent:35, craftsureAmount: Math.round(craftsureProfit*0.35), artisanAmount: Math.round(totalReceivedByArtisan*0.35), status:'pending', evidencePhotos:[] },
+      m75: { percent:40, craftsureAmount: Math.round(craftsureProfit*0.40), artisanAmount: Math.round(totalReceivedByArtisan*0.40), status:'pending', evidencePhotos:[] },
+      m100: { percent:25, craftsureAmount: Math.round(craftsureProfit*0.25), artisanAmount: Math.round(totalReceivedByArtisan*0.25), status:'pending', evidencePhotos:[] },
+      overallStatus:'funded'
+    });
+
+    await escrow.save();
+    res.json(escrow);
+  }catch(e){
+    console.log(e);
+    res.status(500).json({error:e.message});
+  }
 });
 
 // 2. Artisan uploads evidence for 35% / 75% / 100%
 router.post('/upload/:id/:stage', async (req,res)=>{
-  const { photos } = req.body; // array of photo URLs
+  const { photos } = req.body;
   const escrow = await EscrowJob.findById(req.params.id);
   escrow[req.params.stage].evidencePhotos = photos;
   escrow[req.params.stage].status = 'uploaded';
@@ -21,21 +45,17 @@ router.post('/upload/:id/:stage', async (req,res)=>{
   res.json(escrow);
 });
 
-// 3. Client APPROVES milestone - this will later trigger Paystack transfer
+// 3. Client APPROVES milestone
 router.post('/approve/:id/:stage', async (req,res)=>{
   const escrow = await EscrowJob.findById(req.params.id);
-  escrow[req.params.stage].status = 'paid'; // in real Paystack, change to approved then transfer
+  escrow[req.params.stage].status = 'paid';
   escrow[req.params.stage].approvedAt = new Date();
-
-  // Update overall
   if(req.params.stage==='m100') escrow.overallStatus = 'completed';
   else escrow.overallStatus = 'in_progress';
-
   await escrow.save();
 
-  // TODO: Paystack Transfer here - amount = total * percent * 0.9 (you keep 10%)
   const percent = escrow[req.params.stage].percent;
-  const payAmount = escrow.totalAmount * (percent/100) * 0.9;
+  const payAmount = escrow[req.params.stage].artisanAmount;
 
   res.json({ message:`${percent}% approved! Pay ₦${payAmount} to artisan`, escrow, payAmount });
 });
