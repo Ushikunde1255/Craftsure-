@@ -118,5 +118,13 @@ router.get('/admin/ratings', async (req,res)=>{
   const ratings = await Rating.find().sort({ createdAt: -1 });
   res.json(ratings);
 });
-
+// 8. ADMIN DELETE - Delete old test escrow
+router.delete('/admin/delete/:id', async (req,res)=>{
+  await EscrowJob.findByIdAndDelete(req.params.id);
+  res.json({ message:'Deleted' });
+});
+router.delete('/:id', async (req,res)=>{
+  await EscrowJob.findByIdAndDelete(req.params.id);
+  res.json({ message:'Deleted' });
+});
 module.exports = router;
