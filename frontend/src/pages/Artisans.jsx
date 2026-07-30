@@ -3,82 +3,67 @@ import { useEffect, useState } from 'react';
 export default function Artisans() {
   const [artisans, setArtisans] = useState([]);
   const [filter, setFilter] = useState('');
-  const [ratings, setRatings] = useState({});
 
   useEffect(() => {
     fetch('https://craftsure-1.onrender.com/api/artisans')
-   .then(r=>r.json()).then(data=>{
-      const list = Array.isArray(data)? data : data.artisans || [];
+   .then(r=>r.json())
+   .then(data=>{
+      const list = Array.isArray(data)? data : data.artisans || data.users || [];
+      console.log('artisans', list.length);
       setArtisans(list);
-      list.forEach(async a=>{
-        const id = a._id || a.id;
-        const r = await fetch(`https://craftsure-1.onrender.com/api/escrow/ratings/${id}`).then(r=>r.json()).catch(()=>({avg:0,count:0}));
-        setRatings(prev=>({...prev,[id]: r}));
-      });
-    });
+    })
+   .catch(()=> setArtisans([]));
   }, []);
 
-  const hire = async (artisan) => {
+  const hire = async (a) => {
     const user = JSON.parse(localStorage.getItem('user')||'null');
     if(!user){ alert('Login first!'); return; }
-    const title = prompt(`Hire ${artisan.name} for what job?`, 'Parapet and roofing');
+    const title = prompt(`Hire ${a.name} for what job?`, 'Parapet and roofing');
     if(!title) return;
-    const amount = parseInt(prompt(`Enter price for ${artisan.name} - ${title}`, '70000'));
+    const amount = parseInt(prompt(`Price for ${a.name}`, '70000'));
     if(!amount) return;
     const fee = Math.round(amount*0.05);
-    if(!confirm(`💰 ESCROW:\nPrice: ₦${amount}\nSafety Fee 5%: ₦${fee}\nTotal: ₦${amount+fee}\n\n🔒 Chat inside app! Phone hidden until funded!\nContinue?`)) return;
-
-    const res = await fetch('https://craftsure-1.onrender.com/api/escrow/create',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        jobId:'artisan-'+Date.now(), jobTitle:title,
+    if(!confirm(`💰 ESCROW:\nPrice ₦${amount}\nFee 5% ₦${fee}\nTotal ₦${amount+fee}\n🔒 Phone hidden until funded!\nChat inside app! Admin sees all chats!`)) return;
+    await fetch('https://craftsure-1.onrender.com/api/escrow/create',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        jobId:'art-'+Date.now(), jobTitle:title,
         clientId:user._id||user.id, clientName:user.name,
-        artisanId:artisan._id||artisan.id, artisanName:artisan.name, artisanPhone:artisan.phone||'',
+        artisanId:a._id||a.id, artisanName:a.name, artisanPhone:a.phone||'',
         totalAmount:amount
       })
+    }).then(r=>r.json()).then(e=>{
+      alert(`✅ Escrow Created! Go to Escrow page!`);
+      window.location.href='/escrow';
     });
-    const escrow = await res.json();
-    alert(`✅ Escrow Created! ${escrow._id}\nGo to Escrow page to chat!`);
-    window.location.href='/escrow';
   };
 
-  const filtered = artisans.filter(a=>
-   !filter || a.skill?.toLowerCase().includes(filter.toLowerCase()) ||
-    a.name?.toLowerCase().includes(filter.toLowerCase()) ||
-    a.location?.toLowerCase().includes(filter.toLowerCase())
-  );
+  const filtered = artisans.filter(a=>{
+    const s = (a.skill||a.trade||'').toLowerCase();
+    const n = (a.name||'').toLowerCase();
+    const l = (a.location||'').toLowerCase();
+    const f = filter.toLowerCase();
+    return!f || s.includes(f) || n.includes(f) || l.includes(f);
+  });
 
   return (
     <div style={{ padding:'15px', background:'#f5f7fb', minHeight:'100vh' }}>
       <input value={filter} onChange={e=>setFilter(e.target.value)} placeholder="Search skill, name, location e.g. Carpentry, Makurdi" style={{ width:'100%', padding:'12px', borderRadius:'10px', border:'1px solid #ddd' }} />
-      <div style={{ display:'flex', gap:'8px', marginTop:'10px' }}>
-        <select onChange={e=>setFilter(e.target.value)} style={{ padding:'8px', borderRadius:'8px' }}>
-          <option value="">All Locations 🌍</option><option>Abia</option><option>Accra</option><option>Makurdi</option>
-        </select>
-        <select onChange={e=>setFilter(e.target.value)} style={{ padding:'8px', borderRadius:'8px' }}>
-          <option value="">All Skills 🔧</option><option>Carpentry</option><option>General Artisan</option>
-        </select>
-      </div>
-
-      <div style={{ marginTop:'15px', display:'grid', gap:'12px' }}>
-        {filtered.map(a=>{
-          const id = a._id || a.id;
-          const r = ratings[id] || {avg:0,count:0};
-          return (
-            <div key={id} style={{ background:'white', padding:'14px', borderRadius:'14px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-              <div>
-                <b>{a.name}</b> <span style={{ fontSize:'12px', color:'#5a31f5', marginLeft:'8px' }}>👁 View Works</span> {r.count>0 && <span style={{ fontSize:'12px', background:'#fef3c7', padding:'2px 6px', borderRadius:'6px' }}>⭐{r.avg} ({r.count})</span>}<br/>
-                <span style={{ color:'#5a31f5', fontSize:'13px' }}>{a.skill || 'General Artisan'}</span><br/>
-                <span style={{ fontSize:'12px', color:'#666' }}>📍 {a.location || 'Nigeria'} | ⭐ Rating: {r.avg||'New'} | 🔒 Phone hidden until escrow</span>
-              </div>
-              <button onClick={()=>hire(a)} style={{ background:'#f59e0b', color:'white', border:'none', padding:'10px 16px', borderRadius:'10px', fontWeight:'bold', fontSize:'13px' }}>Hire via Escrow 💰</button>
-            </div>
-          )
-        })}
-      </div>
-
-      <div style={{ fontSize:'11px', color:'#666', marginTop:'15px', background:'#fffbeb', padding:'10px', borderRadius:'8px' }}>
+      <div style={{ background:'#fffbeb', padding:'10px', borderRadius:'10px', marginTop:'10px', fontSize:'12px' }}>
         🔒 Anti-bypass: No WhatsApp shown! Client must fund escrow 5% to chat! You keep 15%! Admin can read all chats in Admin → Load All Chats!
+      </div>
+      <div style={{ marginTop:'15px', display:'grid', gap:'12px' }}>
+        {filtered.length===0 && <div style={{ background:'white', padding:'20px', borderRadius:'12px', textAlign:'center' }}>No artisans found. Check backend /api/artisans has data. You have {artisans.length} loaded.</div>}
+        {filtered.map(a=>(
+          <div key={a._id||a.id} style={{ background:'white', padding:'14px', borderRadius:'14px', display:'flex', justifyContent:'space-between' }}>
+            <div>
+              <b>{a.name}</b><br/>
+              <span style={{ color:'#5a31f5', fontSize:'13px' }}>{a.skill||a.trade||'General Artisan'}</span><br/>
+              <span style={{ fontSize:'12px', color:'#666' }}>📍 {a.location||'Nigeria'} | ⭐ New | 🔒 Phone hidden</span>
+            </div>
+            <button onClick={()=>hire(a)} style={{ background:'#f59e0b', color:'white', border:'none', padding:'10px 14px', borderRadius:'10px', fontWeight:'bold', height:'40px' }}>Hire 💰</button>
+          </div>
+        ))}
       </div>
     </div>
   );
