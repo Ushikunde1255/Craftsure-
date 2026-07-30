@@ -91,4 +91,103 @@ router.get('/admin/stats', async (req,res)=>{
     allJobs: all.slice(0,50) // last 50
   });
 });
+// 6. CHAT - Client & Artisan chat INSIDE CraftSure (Admin can spy!)
+const Chat = require('../models/Chat');
+const Rating = require('../models/Rating');
+
+// Create or get chat for escrow
+router.post('/chat/:escrowId', async (req,res)=>{
+  const { clientId, clientName, artisanId, artisanName, jobId, jobTitle, senderId, senderName, text } = req.body;
+
+  // ANTI-BYPASS: Detect phone numbers
+  const phoneRegex = /(\+?234|0)?[789][01]\d{8}|\+233\d{9}|.*\d{10,}.*/;
+  const isPhoneAttempt = phoneRegex.test(text) || text.toLowerCase().includes('whatsapp') || text.toLowerCase().includes('call me');
+
+  let chat = await Chat.findOne({ escrowId: req.params.escrowId });
+  if (!chat) {
+    chat = new Chat({ escrowId: req.params.escrowId, jobId, jobTitle, clientId, clientName, artisanId, artisanName, messages: [] });
+  }
+  chat.messages.push({ senderId, senderName, text: isPhoneAttempt? text + ' [⚠️ PHONE ATTEMPT BLOCKED - Pay 5% fee to unlock phone!]' : text, senderName, isPhoneAttempt });
+  await chat.save();
+  res.json(chat);
+});
+
+router.get('/chat/:escrowId', async (req,res)=>{
+  const chat = await Chat.findOne({ escrowId: req.params.escrowId });
+  res.json(chat || { messages: [] });
+});
+
+// ADMIN CAN READ ALL CHATS! 👮
+router.get('/admin/chats', async (req,res)=>{
+  const chats = await Chat.find().sort({ createdAt: -1 }).limit(50);
+  res.json(chats);
+});
+
+// RATING - After 100% completion
+router.post('/rate', async (req,res)=>{
+  const { artisanId, artisanName, clientId, clientName, escrowId, jobTitle, stars, comment } = req.body;
+  const rating = new Rating({ artisanId, artisanName, clientId, clientName, escrowId, jobTitle, stars, comment });
+  await rating.save();
+  res.json(rating);
+});
+
+router.get('/ratings/:artisanId', async (req,res)=>{
+  const ratings = await Rating.find({ artisanId: req.params.artisanId });
+  const avg = ratings.length? (ratings.reduce((s,r)=>s+r.stars,0)/ratings.length).toFixed(1) : 0;
+  res.json({ ratings, avg, count: ratings.length });
+});
+
+router.get('/admin/ratings', async (req,res)=>{
+  const ratings = await Rating.find().sort({ createdAt: -1 });
+  res.json(ratings);
+});// 6. CHAT - Client & Artisan chat INSIDE CraftSure (Admin can spy!)
+const Chat = require('../models/Chat');
+const Rating = require('../models/Rating');
+
+// Create or get chat for escrow
+router.post('/chat/:escrowId', async (req,res)=>{
+  const { clientId, clientName, artisanId, artisanName, jobId, jobTitle, senderId, senderName, text } = req.body;
+
+  // ANTI-BYPASS: Detect phone numbers
+  const phoneRegex = /(\+?234|0)?[789][01]\d{8}|\+233\d{9}|.*\d{10,}.*/;
+  const isPhoneAttempt = phoneRegex.test(text) || text.toLowerCase().includes('whatsapp') || text.toLowerCase().includes('call me');
+
+  let chat = await Chat.findOne({ escrowId: req.params.escrowId });
+  if (!chat) {
+    chat = new Chat({ escrowId: req.params.escrowId, jobId, jobTitle, clientId, clientName, artisanId, artisanName, messages: [] });
+  }
+  chat.messages.push({ senderId, senderName, text: isPhoneAttempt? text + ' [⚠️ PHONE ATTEMPT BLOCKED - Pay 5% fee to unlock phone!]' : text, senderName, isPhoneAttempt });
+  await chat.save();
+  res.json(chat);
+});
+
+router.get('/chat/:escrowId', async (req,res)=>{
+  const chat = await Chat.findOne({ escrowId: req.params.escrowId });
+  res.json(chat || { messages: [] });
+});
+
+// ADMIN CAN READ ALL CHATS! 👮
+router.get('/admin/chats', async (req,res)=>{
+  const chats = await Chat.find().sort({ createdAt: -1 }).limit(50);
+  res.json(chats);
+});
+
+// RATING - After 100% completion
+router.post('/rate', async (req,res)=>{
+  const { artisanId, artisanName, clientId, clientName, escrowId, jobTitle, stars, comment } = req.body;
+  const rating = new Rating({ artisanId, artisanName, clientId, clientName, escrowId, jobTitle, stars, comment });
+  await rating.save();
+  res.json(rating);
+});
+
+router.get('/ratings/:artisanId', async (req,res)=>{
+  const ratings = await Rating.find({ artisanId: req.params.artisanId });
+  const avg = ratings.length? (ratings.reduce((s,r)=>s+r.stars,0)/ratings.length).toFixed(1) : 0;
+  res.json({ ratings, avg, count: ratings.length });
+});
+
+router.get('/admin/ratings', async (req,res)=>{
+  const ratings = await Rating.find().sort({ createdAt: -1 });
+  res.json(ratings);
+});
 module.exports = router;
