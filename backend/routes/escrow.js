@@ -70,5 +70,25 @@ router.get('/:id', async (req,res)=>{
   const job = await EscrowJob.findById(req.params.id);
   res.json(job);
 });
+// 5. ADMIN STATS - Total profit dashboard!
+router.get('/admin/stats', async (req,res)=>{
+  const all = await EscrowJob.find();
+  const totalProfit = all.reduce((sum,j)=> sum + (j.craftsureProfit||0), 0);
+  const totalClientFee = all.reduce((sum,j)=> sum + (j.clientFee||0), 0);
+  const totalArtisanFee = all.reduce((sum,j)=> sum + (j.artisanFee||0), 0);
+  const totalArtisanPaid = all.reduce((sum,j)=> sum + (j.totalReceivedByArtisan||0), 0);
+  const completed = all.filter(j=>j.overallStatus==='completed').length;
+  const pending = all.filter(j=>j.m35?.status==='uploaded' || j.m75?.status==='uploaded' || j.m100?.status==='uploaded').length;
 
+  res.json({
+    totalJobs: all.length,
+    totalProfit,
+    totalClientFee,
+    totalArtisanFee,
+    totalArtisanPaid,
+    completed,
+    pending,
+    allJobs: all.slice(0,50) // last 50
+  });
+});
 module.exports = router;
