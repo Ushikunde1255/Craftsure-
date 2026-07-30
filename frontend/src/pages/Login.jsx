@@ -1,37 +1,24 @@
 import { useState } from 'react';
-const API_URL = 'https://craftsure-1.onrender.com/api';
-
-export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await fetch(`${API_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        alert(`Welcome back ${data.user.name}!`);
-        window.location.href = '/jobs';
-      } else {
-        alert(data.msg);
-      }
-    } catch { alert('Backend sleeping, wait 30s'); }
+export default function Login(){
+  const [email,setEmail]=useState(''); const [pass,setPass]=useState('');
+  const login = async ()=>{
+    const res = await fetch('https://craftsure-1.onrender.com/api/auth/login',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({email,password:pass})
+    }).then(r=>r.json());
+    if(res.token || res._id){
+      localStorage.setItem('user', JSON.stringify(res.user||res));
+      alert('Welcome '+ (res.user?.name||res.name));
+      window.location.href='/';
+    } else alert('Login failed: '+(res.message||'Check email/pass'));
   };
-
   return (
-    <div style={{ maxWidth: '400px', margin: '40px auto', padding: '20px', background: 'white', borderRadius: '12px' }}>
+    <div style={{ padding:'20px', maxWidth:'400px', margin:'40px auto', background:'white', borderRadius:'14px' }}>
       <h2>Login to CraftSure</h2>
-      <input placeholder="Email" value={email} onChange={e=>setEmail(e.target.value)} style={{ width: '100%', padding: '14px', margin: '8px 0', borderRadius: '8px', border: '1px solid #ccc' }} />
-      <input placeholder="Password" type="password" value={password} onChange={e=>setPassword(e.target.value)} style={{ width: '100%', padding: '14px', margin: '8px 0', borderRadius: '8px', border: '1px solid #ccc' }} />
-      <button onClick={handleLogin} style={{ width: '100%', padding: '16px', background: '#5a31f5', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 'bold', marginTop: '10px' }}>Login</button>
-      <p style={{ textAlign: 'center', marginTop: '15px' }}>No account? <a href="/register">Register</a></p>
+      <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="Email" style={{ width:'100%', padding:'12px', marginTop:'10px', borderRadius:'8px', border:'1px solid #ddd' }} />
+      <input type="password" value={pass} onChange={e=>setPass(e.target.value)} placeholder="Password" style={{ width:'100%', padding:'12px', marginTop:'10px', borderRadius:'8px', border:'1px solid #ddd' }} />
+      <button onClick={login} style={{ width:'100%', background:'#5a31f5', color:'white', padding:'12px', borderRadius:'10px', border:'none', marginTop:'15px', fontWeight:'bold' }}>Login</button>
+      <div style={{ marginTop:'12px', fontSize:'14px' }}>No account? <a href="/signup" style={{ color:'#5a31f5' }}>Sign Up</a></div>
     </div>
   );
 }
