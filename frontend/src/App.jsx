@@ -1,51 +1,77 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 export default function App(){
 const [tab,setTab]=useState("home");
 const [showLogin,setShowLogin]=useState(false);
 const [isReg,setIsReg]=useState(false);
 const [view,setView]=useState(null);
 const [chat,setChat]=useState(null);
+const [adminChatView,setAdminChatView]=useState(null);
 const [msg,setMsg]=useState("");
 const [jobs,setJobs]=useState([{id:1,title:"Tile my 3 bedroom",loc:"Ojo",budget:"₦80k"}]);
 const [chats,setChats]=useState({});
 const artisans=[{id:1,name:"Tunde Tiler",role:"Tiler • Ojo",rate:"5 • 47 jobs",gold:true},{id:2,name:"Musa Carpenter",role:"Carpenter • Onireke",rate:"4.9 • 32 jobs",gold:false}];
-const send=()=>{if(!msg.trim())return;setChats(p=>({...p,[chat.id]:[...(p[chat.id]||[]),{me:true,t:msg}]}));setMsg(""); setTimeout(()=>setChats(p=>({...p,[chat.id]:[...(p[chat.id]||[]),{me:false,t:"Oga I dey available! 🔧"}]})),800) };
+const send=()=>{if(!msg.trim())return;setChats(p=>({...p,[chat.id]:[...(p[chat.id]||[]),{me:true,t:msg,time:new Date().toLocaleTimeString(),client:"You"}]}));setMsg(""); setTimeout(()=>setChats(p=>({...p,[chat.id]:[...(p[chat.id]||[]),{me:false,t:"Oga I dey available! When we start? 🔧",time:new Date().toLocaleTimeString(),client:"You"}]})),800)};
 return(
 <div style={{background:'#f5f5f5',minHeight:'100vh',fontFamily:'sans-serif',paddingBottom:'60px'}}>
-<div style={{background:'#4338ca',color:'#fff',padding:'12px',display:'flex',justifyContent:'space-between'}}>
+<div style={{background:'#4338ca',color:'#fff',padding:'12px',display:'flex',justifyContent:'space-between',position:'sticky',top:0,zIndex:10}}>
 <b>CraftSure 🇳🇬</b>
-<div style={{display:'flex',gap:'6px'}}>
-<button onClick={()=>setTab("home")} style={{background:'#7c3aed',color:'#fff',border:'none',padding:'5px 10px',borderRadius:'8px',fontSize:'11px'}}>Home</button>
-<button onClick={()=>setTab("jobs")} style={{background:'#22c55e',color:'#fff',border:'none',padding:'5px 10px',borderRadius:'8px',fontSize:'11px'}}>Jobs</button>
-<button onClick={()=>setTab("admin")} style={{background:'#f59e0b',color:'#fff',border:'none',padding:'5px 10px',borderRadius:'8px',fontSize:'11px'}}>Admin</button>
-<button onClick={()=>setShowLogin(true)} style={{background:'#fff',color:'#4338ca',border:'none',padding:'5px 10px',borderRadius:'12px',fontSize:'11px',fontWeight:'bold'}}>Login</button>
+<div style={{display:'flex',gap:'5px'}}>
+<button onClick={()=>setTab("home")} style={{background:'#7c3aed',color:'#fff',border:'none',padding:'5px 9px',borderRadius:'8px',fontSize:'10px'}}>Home</button>
+<button onClick={()=>setTab("jobs")} style={{background:'#22c55e',color:'#fff',border:'none',padding:'5px 9px',borderRadius:'8px',fontSize:'10px'}}>Jobs</button>
+<button onClick={()=>setTab("admin")} style={{background:'#f59e0b',color:'#fff',border:'none',padding:'5px 9px',borderRadius:'8px',fontSize:'10px'}}>Admin {Object.keys(chats).length>0&&`(${Object.values(chats).flat().length})`}</button>
+<button onClick={()=>setShowLogin(true)} style={{background:'#fff',color:'#4338ca',border:'none',padding:'5px 9px',borderRadius:'12px',fontSize:'10px',fontWeight:'bold'}}>Login</button>
 </div>
 </div>
 
 {tab==="home"&&<>
-<h2 style={{padding:'15px 15px 0',margin:0}}>Craftsure NG 🔒</h2>
-<p style={{padding:'0 15px',margin:'0 0 10px',fontSize:'12px',color:'#666'}}>Escrow • Pay only when job done</p>
-<div style={{margin:'15px',padding:'16px',borderRadius:'12px',background:'linear-gradient(90deg,#fde047,#fb923c)',display:'flex',justifyContent:'space-between'}}>
-<div><span style={{background:'black',color:'#fff',fontSize:'8px',padding:'2px 6px',borderRadius:'6px'}}>AD • SPONSORED</span><div style={{fontWeight:'bold',marginTop:'4px'}}>Need Building Materials? 🏗️</div><div style={{fontSize:'11px'}}>10% off — CRAFTSURE10</div></div>
-<button style={{background:'black',color:'#fff',border:'none',padding:'8px 12px',borderRadius:'15px',fontSize:'11px'}}>Shop Now</button>
-</div>
-<div style={{padding:'0 15px',display:'flex',justifyContent:'space-between'}}><b>Artisans</b><button onClick={()=>setTab("jobs")} style={{background:'#4338ca',color:'#fff',border:'none',padding:'5px 10px',borderRadius:'6px',fontSize:'11px'}}>+ Post Job</button></div>
-{artisans.map(a=><div key={a.id} style={{margin:'8px 15px',background:'#fff',padding:'12px',borderRadius:'10px',border:a.gold?'2px solid gold':'1px solid #eee'}}>
-<b>{a.name} {a.gold&&<span style={{background:'gold',fontSize:'8px',padding:'2px 5px',borderRadius:'4px'}}>SPONSORED</span>}</b><br/><small>{a.role} • ⭐ {a.rate}</small>
-<div style={{marginTop:'8px',display:'flex',gap:'6px'}}><button onClick={()=>setView(a)} style={{flex:1,padding:'6px',background:'#eee',border:'none',borderRadius:'6px',fontSize:'11px'}}>Portfolio</button><button onClick={()=>setChat(a)} style={{flex:1,padding:'6px',background:'#e0e7ff',border:'none',borderRadius:'6px',fontSize:'11px',color:'#4338ca',fontWeight:'bold'}}>💬 Chat</button><button style={{flex:1,padding:'6px',background:'black',color:'#fff',border:'none',borderRadius:'6px',fontSize:'11px'}}>Hire</button></div>
-</div>)}
+<h2 style={{padding:'12px 15px 0',margin:0,fontSize:'24px'}}>Craftsure NG 🔒</h2><p style={{padding:'0 15px',margin:'0 0 8px',fontSize:'11px',color:'#666'}}>Escrow 5% + 10% = 15% profit • Pay only when done</p>
+<div style={{margin:'12px 15px',padding:'14px',borderRadius:'12px',background:'linear-gradient(90deg,#fde047,#fb923c)',display:'flex',justifyContent:'space-between'}}><div><span style={{background:'black',color:'#fff',fontSize:'7px',padding:'2px 5px',borderRadius:'6px'}}>AD</span><div style={{fontWeight:'bold',fontSize:'13px',marginTop:'3px'}}>Building Materials? 🏗️</div><div style={{fontSize:'10px'}}>10% off — CRAFTSURE10</div></div><button style={{background:'black',color:'#fff',border:'none',padding:'6px 10px',borderRadius:'12px',fontSize:'10px'}}>Shop Now</button></div>
+<div style={{padding:'0 15px',display:'flex',justifyContent:'space-between'}}><b style={{fontSize:'13px'}}>Artisans</b><button onClick={()=>setTab("jobs")} style={{background:'#4338ca',color:'#fff',border:'none',padding:'4px 8px',borderRadius:'6px',fontSize:'10px'}}>+ Post Job</button></div>
+{artisans.map(a=><div key={a.id} style={{margin:'8px 15px',background:'#fff',padding:'10px',borderRadius:'10px',border:a.gold?'2px solid gold':'1px solid #eee'}}><b style={{fontSize:'13px'}}>{a.name} {a.gold&&<span style={{background:'gold',fontSize:'7px',padding:'2px 4px',borderRadius:'4px'}}>SPONSORED</span>}</b><br/><small style={{fontSize:'10px'}}>{a.role} • ⭐ {a.rate}</small>{chats[a.id]&&<div style={{fontSize:'9px',color:'green',fontWeight:'bold'}}>💬 {chats[a.id].length} msgs (Monitored by Admin 🔍)</div>}<div style={{marginTop:'6px',display:'flex',gap:'5px'}}><button onClick={()=>setView(a)} style={{flex:1,padding:'6px',background:'#eee',border:'none',borderRadius:'6px',fontSize:'10px'}}>Portfolio</button><button onClick={()=>setChat(a)} style={{flex:1,padding:'6px',background:'#e0e7ff',border:'none',borderRadius:'6px',fontSize:'10px',color:'#4338ca',fontWeight:'bold'}}>Chat</button><button onClick={()=>setView(a)} style={{flex:1,padding:'6px',background:'black',color:'#fff',border:'none',borderRadius:'6px',fontSize:'10px'}}>Hire</button></div></div>)}
 </>}
 
-{tab==="jobs"&&<div style={{padding:'15px'}}><h3>Jobs</h3>{jobs.map(j=><div key={j.id} style={{background:'#fff',padding:'12px',borderRadius:'8px',marginBottom:'8px'}}><b>{j.title}</b><br/><small>{j.loc} • {j.budget}</small></div>)}<button onClick={()=>{const t=prompt("Job title?"); if(t) setJobs([{id:Date.now(),title:t,loc:"Lagos",budget:"₦50k"},...jobs])}} style={{width:'100%',padding:'12px',background:'#4338ca',color:'#fff',border:'none',borderRadius:'8px',fontWeight:'bold'}}>+ Post New Job</button></div>}
+{tab==="jobs"&&<div style={{padding:'15px'}}><h3 style={{fontSize:'14px'}}>Jobs</h3>{jobs.map(j=><div key={j.id} style={{background:'#fff',padding:'10px',borderRadius:'8px',marginBottom:'8px',fontSize:'12px'}}><b>{j.title}</b><br/><small>{j.loc} • {j.budget}</small></div>)}<button onClick={()=>{const t=prompt("Job title?"); if(t) setJobs([{id:Date.now(),title:t,loc:"Lagos",budget:"₦50k"},...jobs])}} style={{width:'100%',padding:'10px',background:'#4338ca',color:'#fff',border:'none',borderRadius:'8px',fontWeight:'bold',fontSize:'12px'}}>+ Post New Job</button></div>}
 
-{tab==="admin"&&<div style={{padding:'15px'}}><h3>Admin Dashboard 📊</h3><div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px'}}><div style={{background:'#fff',padding:'15px',borderRadius:'10px',textAlign:'center'}}><h2 style={{margin:0,color:'#4338ca'}}>{artisans.length}</h2><small>Artisans</small></div><div style={{background:'#fff',padding:'15px',borderRadius:'10px',textAlign:'center'}}><h2 style={{margin:0,color:'#22c55e'}}>{jobs.length}</h2><small>Jobs</small></div></div><div style={{background:'#fff',marginTop:'12px',padding:'12px',borderRadius:'10px'}}><b>Sponsored Revenue</b><br/><small>Tunde: ₦2k/mo ✅ | Dangote Ad: ₦5k</small></div></div>}
-
-{showLogin&&<div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.6)',zIndex:99,padding:'20px'}}><div style={{background:'#fff',padding:'20px',borderRadius:'12px',maxWidth:'320px',margin:'40px auto'}}><div style={{display:'flex',justifyContent:'space-between'}}><h3 style={{margin:0}}>{isReg?"Register":"Login"}</h3><button onClick={()=>setShowLogin(false)} style={{border:'none',background:'#eee',width:'28px',height:'28px',borderRadius:'50%'}}>X</button></div><input placeholder="Phone" style={{width:'100%',padding:'10px',marginTop:'10px',borderRadius:'8px',border:'1px solid #ddd',boxSizing:'border-box'}}/><input placeholder="Password" type="password" style={{width:'100%',padding:'10px',marginTop:'8px',borderRadius:'8px',border:'1px solid #ddd',boxSizing:'border-box'}}/>{isReg&&<select style={{width:'100%',padding:'10px',marginTop:'8px',borderRadius:'8px'}}><option>Client</option><option>Artisan</option></select>}<button onClick={()=>setShowLogin(false)} style={{width:'100%',marginTop:'10px',padding:'10px',background:'#4338ca',color:'#fff',border:'none',borderRadius:'8px',fontWeight:'bold'}}>{isReg?"Create Account":"Login"}</button><div style={{textAlign:'center',marginTop:'10px',fontSize:'12px'}}><span onClick={()=>setIsReg(!isReg)} style={{color:'#4338ca',fontWeight:'bold'}}>{isReg?"Have account? Login":"No account? Register"}</span></div></div></div>}
-
-{view&&<div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.7)',zIndex:80,padding:'15px'}}><div style={{background:'#fff',padding:'15px',borderRadius:'12px',maxWidth:'350px',margin:'20px auto'}}><div style={{display:'flex',justifyContent:'space-between'}}><b>{view.name} Portfolio</b><button onClick={()=>setView(null)} style={{border:'none',background:'#eee',width:'28px',height:'28px',borderRadius:'50%'}}>X</button></div><div style={{background:'#ddd',height:'80px',borderRadius:'8px',marginTop:'10px',display:'flex',alignItems:'center',justifyContent:'center'}}>🛠️ Before/After</div><p style={{fontSize:'12px'}}>Kitchen Tiles - Lekki ✅ ⭐⭐⭐⭐⭐</p><button onClick={()=>{setChat(view); setView(null)}} style={{width:'100%',padding:'10px',background:'#4338ca',color:'#fff',border:'none',borderRadius:'8px'}}>💬 Chat to Hire</button></div></div>}
-
-{chat&&<div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'#fff',zIndex:90,display:'flex',flexDirection:'column'}}><div style={{background:'#4338ca',color:'#fff',padding:'12px',display:'flex',justifyContent:'space-between'}}><b>💬 {chat.name}</b><button onClick={()=>setChat(null)} style={{background:'rgba(255,255,255,0.2)',color:'#fff',border:'none',width:'28px',height:'28px',borderRadius:'50%'}}>X</button></div><div style={{flex:1,padding:'12px',overflowY:'auto',background:'#f9fafb'}}>{(chats[chat.id]||[]).map((m,i)=><div key={i} style={{display:'flex',justifyContent:m.me?'flex-end':'flex-start',marginBottom:'8px'}}><div style={{background:m.me?'#4338ca':'#fff',color:m.me?'#fff':'#000',padding:'8px 12px',borderRadius:'14px',fontSize:'12px',maxWidth:'75%'}}>{m.t}</div></div>)}</div><div style={{display:'flex',gap:'6px',padding:'10px',borderTop:'1px solid #eee'}}><input value={msg} onChange={e=>setMsg(e.target.value)} onKeyDown={e=>e.key==='Enter'&&send()} placeholder="Message..." style={{flex:1,padding:'10px',borderRadius:'20px',border:'1px solid #ddd'}}/><button onClick={send} style={{background:'#4338ca',color:'#fff',border:'none',padding:'0 16px',borderRadius:'20px'}}>Send</button></div></div>}
-
+{tab==="admin"&&<div style={{padding:'12px'}}><h3 style={{fontSize:'14px'}}>Admin Dashboard 📊 — MONITOR ALL CHATS 🔍</h3>
+<div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px'}}>
+<div style={{background:'#fff',padding:'12px',borderRadius:'8px',textAlign:'center'}}><h2 style={{margin:0,color:'#4338ca',fontSize:'18px'}}>{artisans.length}</h2><small style={{fontSize:'10px'}}>Artisans</small></div>
+<div style={{background:'#fff',padding:'12px',borderRadius:'8px',textAlign:'center'}}><h2 style={{margin:0,color:'#22c55e',fontSize:'18px'}}>{jobs.length}</h2><small style={{fontSize:'10px'}}>Jobs</small></div>
+<div style={{background:'#fff',padding:'12px',borderRadius:'8px',textAlign:'center'}}><h2 style={{margin:0,color:'#f59e0b',fontSize:'16px'}}>₦{jobs.length*15000}</h2><small style={{fontSize:'10px'}}>Profit 15%</small></div>
+<div style={{background:'#fff',padding:'12px',borderRadius:'8px',textAlign:'center'}}><h2 style={{margin:0,color:'#ef4444',fontSize:'18px'}}>{Object.values(chats).flat().length}</h2><small style={{fontSize:'10px'}}>Messages Monitored</small></div>
 </div>
-)
-                                                                                     }
+
+<div style={{background:'#fff',marginTop:'10px',padding:'10px',borderRadius:'8px'}}>
+<b style={{fontSize:'12px'}}>💰 Escrow: 5% Client + 10% Artisan = 15%</b><br/>
+<small style={{fontSize:'10px'}}>₦100k job → Client pays ₦105k, Artisan gets ₦90k, You keep ₦15k</small>
+</div>
+
+<div style={{background:'#fff',marginTop:'10px',padding:'10px',borderRadius:'8px'}}>
+<b style={{fontSize:'12px'}}>🔍 Monitored Chats — Client ↔ Artisan (Admin View)</b>
+{Object.keys(chats).length===0&&<div style={{fontSize:'11px',color:'#999',marginTop:'6px'}}>No chats yet. When client chats artisan, it appears here for dispute resolution.</div>}
+{Object.entries(chats).map(([artId,msgs])=>{
+const art=artisans.find(x=>x.id==artId);
+return<div key={artId} style={{border:'1px solid #eee',borderRadius:'8px',padding:'8px',marginTop:'8px'}}>
+<div style={{display:'flex',justifyContent:'space-between'}}><small style={{fontWeight:'bold',fontSize:'11px'}}>Client ↔ {art?.name}</small><button onClick={()=>setAdminChatView({art,msgs})} style={{fontSize:'9px',background:'#4338ca',color:'#fff',border:'none',padding:'3px 8px',borderRadius:'4px'}}>View Full Chat</button></div>
+<small style={{fontSize:'10px',color:'#666'}}>{msgs.length} messages • Last: {msgs[msgs.length-1]?.t.slice(0,30)}...</small>
+</div>
+})}
+</div>
+</div>}
+
+{showLogin&&<div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.6)',zIndex:99,padding:'20px'}}><div style={{background:'#fff',padding:'15px',borderRadius:'12px',maxWidth:'300px',margin:'30px auto'}}><div style={{display:'flex',justifyContent:'space-between'}}><h3 style={{margin:0,fontSize:'14px'}}>{isReg?"Register":"Login"}</h3><button onClick={()=>setShowLogin(false)} style={{border:'none',background:'#eee',width:'24px',height:'24px',borderRadius:'50%'}}>X</button></div><input placeholder="Phone" style={{width:'100%',padding:'8px',marginTop:'8px',borderRadius:'6px',border:'1px solid #ddd',boxSizing:'border-box'}}/><input placeholder="Password" type="password" style={{width:'100%',padding:'8px',marginTop:'6px',borderRadius:'6px',border:'1px solid #ddd',boxSizing:'border-box'}}/>{isReg&&<select style={{width:'100%',padding:'8px',marginTop:'6px',borderRadius:'6px'}}><option>Client</option><option>Artisan</option></select>}<button onClick={()=>setShowLogin(false)} style={{width:'100%',marginTop:'8px',padding:'9px',background:'#4338ca',color:'#fff',border:'none',borderRadius:'6px',fontWeight:'bold',fontSize:'12px'}}>{isReg?"Create":"Login"}</button><div style={{textAlign:'center',marginTop:'8px',fontSize:'11px'}}><span onClick={()=>setIsReg(!isReg)} style={{color:'#4338ca',fontWeight:'bold'}}>{isReg?"Have account? Login":"No account? Register"}</span></div></div></div>}
+
+{view&&<div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.7)',zIndex:80,padding:'12px',overflowY:'auto'}}><div style={{background:'#fff',padding:'12px',borderRadius:'12px',maxWidth:'320px',margin:'10px auto'}}>
+<div style={{display:'flex',justifyContent:'space-between'}}><b style={{fontSize:'13px'}}>{view.name}</b><button onClick={()=>setView(null)} style={{border:'none',background:'#eee',width:'24px',height:'24px',borderRadius:'50%'}}>X</button></div>
+<div style={{background:'#f3f4f6',padding:'10px',borderRadius:'8px',marginTop:'8px',fontSize:'11px'}}>
+<div style={{display:'flex',justifyContent:'space-between'}}><span>Job:</span><b>₦100,000</b></div>
+<div style={{display:'flex',justifyContent:'space-between',color:'#666',marginTop:'3px'}}><span>+ Client 5%:</span><span>₦5,000</span></div>
+<div style={{display:'flex',justifyContent:'space-between',fontWeight:'bold',borderTop:'1px solid #ddd',marginTop:'5px',paddingTop:'5px'}}><span>You Pay:</span><span style={{color:'#4338ca'}}>₦105,000</span></div>
+<div style={{display:'flex',justifyContent:'space-between',color:'#666',marginTop:'5px'}}><span>Artisan Gets:</span><span>₦90,000</span></div>
+<div style={{background:'#dcfce7',padding:'5px',borderRadius:'5px',marginTop:'5px',textAlign:'center',color:'#166534',fontSize:'10px'}}>🔒 CraftSure Keeps ₦15k (5%+10%) — Escrow Protected • Chat Monitored 🔍</div>
+</div>
+<button onClick={()=>{alert("Escrow: You pay ₦105k\nArtisan gets ₦90k after approval\nYou profit ₦15k\nAll chats monitored by Admin!"); setView(null)}} style={{width:'100%',marginTop:'8px',padding:'10px',background:'#22c55e',color:'#fff',border:'none',borderRadius:'8px',fontWeight:'bold',fontSize:'12px'}}>🔒 Pay ₦105k to Escrow</button>
+</div></div>}
+
+{chat&&<div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'#fff',zIndex:90,display:'flex',flexDirection:'column'}}><div style={{background:'#4338ca',color:'#fff',padding:'10px',display:'flex',justifyContent:'space-between'}}><div><b style={{fontSize:'12px'}}>💬 {chat.name}</b><div style={{fontSize:'9px',opacity:0.8}}>Chat monitored by Admin for escrow safety 🔍</div></div><button onClick={()=>setChat(null)} style={{background:'rgba(255,255,255,0.2)',color:'#fff',border:'none',width:'26px',height:'26px',borderRadius:'50%'}}>X</button></div><div style={{flex:1,padding:'10px',overflowY:'auto',background:'#f9fafb'}}>{(chats[chat.id]||[]).map((m,i)=><div key={i} style={{display:'flex',justifyContent:m.me?'flex-end':'flex-start',marginBottom:'6px'}}><div style={{background:m.me?'#4338ca':'#fff',color:m.me?'#fff':'#000',padding:'6px 10px',borderRadius:'12px',fontSize:'11px',maxWidth:'75%'}}>{m.t}</div></div>)}</div><div style={{display:'flex',gap:'5px',padding:'8px',borderTop:'1px solid #eee'}}><input value={msg} onChange={e=>setMsg(e.target.value)} onKeyDown={e=>e.key==='Enter'&&send()} placeholder="Message..." style={{flex:1,padding:'8px',borderRadius:'20px',border:'1px solid #ddd',fontSize:'11px'}}/><button onClick={send} style={{background:'#4338ca',color:'#fff',border:'none',padding:'0 14px',borderRadius:'20px',fontSize:'11px'}}>Send</button></div><div style={{padding:'5px',background:'#fffbeb',fontSize:'8px',textAlign:'center'}}>🔒 Don't pay outside app — Admin monitors this chat for dispute</div></div>}
+
+{adminChatView&&<div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'#fff',zIndex:100,display:'flex',flexDirection:'column'}}><div style={{background:'#111827',color:'#fff',padding:'10px',display:'flex',justifyContent:'space-between'}}><div><b style={{fontSize:'12px'}}>🔍 ADMIN MONITOR: {adminChatView.art.name}</b><div style={{fontSize:'9px'}}>Monitoring client conversation — For dispute resolution</div></div><button onClick={()=>setAdminChatView(null)} style={{background:'#374151',color:'#fff',border:'none',width:'26px',height:'26px',borderRadius:'50%'}}>X</button></div><div style={{flex:1,padding:'10px',overflowY:'auto',background:'#f3f4f6'}}>{adminChatView.msgs.map((m,i)=><div key={i} style
