@@ -1,63 +1,39 @@
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import Home from './pages/Home';
-import Jobs from './pages/Jobs';
-import Artisans from './pages/Artisans';
-import Portfolio from './pages/Portfolio';
-import PostJob from './pages/PostJob';
-import Escrow from './pages/Escrow';
-import Admin from './pages/Admin';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Chat from './pages/Chat';
+import BrandAd from "./components/BrandAd"
 
-function Navbar(){
-  const user = JSON.parse(localStorage.getItem('user') || 'null');
-  const logout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    window.location.href='/';
-  };
-  return(
-    <nav style={{ background:'#2d1b9c', padding:'10px', display:'flex', gap:'6px', overflowX:'auto', alignItems:'center' }}>
-      <Link to="/" style={{ color:'white', fontWeight:'bold', textDecoration:'none', marginRight:'6px' }}>CraftSure 🇳🇬🇬🇭</Link>
-      <Link to="/jobs" style={{ color:'white', textDecoration:'none', background:'#4f36d3', padding:'6px 8px', borderRadius:'8px', fontSize:'12px' }}>Jobs</Link>
-      <Link to="/artisans" style={{ color:'white', textDecoration:'none', background:'#4f36d3', padding:'6px 8px', borderRadius:'8px', fontSize:'12px' }}>Artisans</Link>
-      <Link to="/portfolio" style={{ color:'white', textDecoration:'none', background:'#6d28d9', padding:'6px 8px', borderRadius:'8px', fontSize:'12px' }}>Portfolio</Link>
-      <Link to="/escrow" style={{ color:'white', textDecoration:'none', background:'#22c55e', padding:'6px 8px', borderRadius:'8px', fontSize:'12px' }}>Escrow</Link>
-      <Link to="/admin" style={{ color:'white', textDecoration:'none', background:'#f59e0b', padding:'6px 8px', borderRadius:'8px', fontSize:'12px' }}>Admin</Link>
-      {user? (
-        <>
-          <span style={{ color:'#a5f3fc', fontSize:'11px' }}>{user.name?.split(' ')[0]}</span>
-          <button onClick={logout} style={{ background:'white', color:'#2d1b9c', border:'none', padding:'6px 8px', borderRadius:'8px', fontSize:'11px', fontWeight:'bold' }}>Logout</button>
-        </>
-      ) : (
-        <>
-          <Link to="/login" style={{ color:'white', textDecoration:'none', border:'1px solid white', padding:'6px 8px', borderRadius:'8px', fontSize:'11px' }}>Login</Link>
-          <Link to="/register" style={{ color:'#2d1b9c', background:'white', padding:'6px 8px', borderRadius:'8px', textDecoration:'none', fontSize:'11px', fontWeight:'bold' }}>Sign Up</Link>
-        </>
-      )}
-      <Link to="/post" style={{ color:'#2d1b9c', background:'white', padding:'6px 8px', borderRadius:'8px', textDecoration:'none', fontSize:'11px', fontWeight:'bold' }}>+ Post</Link>
-    </nav>
-  );
-}
+function App() {
+  return (
+    <div style={{minHeight:'100vh', background:'#f9fafb', fontFamily:'sans-serif', paddingBottom:'50px'}}>
+      {/* HEADER */}
+      <div style={{background:'#4f46e5', color:'white', padding:'12px 16px', display:'flex', gap:'8px', alignItems:'center', flexWrap:'wrap'}}>
+        <strong style={{fontSize:'20px'}}>CraftSure 🇳🇬🇬🇭</strong>
+        <span style={{background:'#8b5cf6', padding:'6px 12px', borderRadius:'12px', fontSize:'12px'}}>Jobs</span>
+        <span style={{background:'#6366f1', padding:'6px 12px', borderRadius:'12px', fontSize:'12px'}}>Artisans</span>
+        <span style={{background:'#22c55e', padding:'6px 12px', borderRadius:'12px', fontSize:'12px'}}>Escrow</span>
+        <span style={{background:'#f59e0b', padding:'6px 12px', borderRadius:'12px', fontSize:'12px'}}>Admin</span>
+      </div>
 
-export default function App(){
-  return(
-    <Router>
-      <Navbar/>
-      <Routes>
-        <Route path="/" element={<Home/>}/>
-        <Route path="/jobs" element={<Jobs/>}/>
-        <Route path="/artisans" element={<Artisans/>}/>
-        <Route path="/portfolio" element={<Portfolio/>}/>
-        <Route path="/escrow" element={<Escrow/>}/>
-        <Route path="/admin" element={<Admin/>}/>
-        <Route path="/login" element={<Login/>}/>
-        <Route path="/register" element={<Register/>}/>
-        <Route path="/signup" element={<Register/>}/>
-        <Route path="/chat/:escrowId" element={<Chat/>}/>
-        <Route path="/post" element={<PostJob/>}/>
-      </Routes>
-    </Router>
-  );
+      <h1 style={{padding:'16px', fontSize:'28px', fontWeight:'bold'}}>Craftsure NG 🔒</h1>
+      <p style={{padding:'0 16px', color:'#555'}}>Escrow for Artisans • Pay only when job is done</p>
+
+      <div style={{padding:'16px'}}>
+        <input placeholder="Find carpenter, tiler, plumber in Lagos..." style={{width:'100%', padding:'12px', borderRadius:'8px', border:'1px solid #ccc'}} />
+        <div style={{display:'flex', gap:'6px', marginTop:'10px', flexWrap:'wrap'}}>
+          {['All','Carpenter','Tiler','Electrician','Plumber','Painter'].map(c=> <button key={c} style={{padding:'6px 12px', borderRadius:'6px', border:'1px solid #ccc', background:'white'}}>{c}</button>)}
+        </div>
+      </div>
+
+      <BrandAd />
+
+      <div style={{padding:'16px'}}>
+        <h2 style={{fontWeight:'bold', fontSize:'20px'}}>Verified Artisans near you</h2>
+        <div style={{background:'white', padding:'16px', borderRadius:'12px', marginTop:'12px', border:'2px solid #facc15'}}>
+          <b>Tunde Tiler <span style={{background:'#facc15', fontSize:'10px', padding:'2px 6px', borderRadius:'8px'}}>SPONSORED</span></b>
+          <p style={{fontSize:'14px', color:'#666'}}>Tiler • Ojo, Lagos</p>
+          <p>⭐ 5 • 47 jobs completed • Verified ✅</p>
+          <button style={{marginTop:'8px', padding:'6px 14px', borderRadius:'6px', border:'1px solid black'}}>Hire</button>
+        </div>
+      </div>
+    </div>
+  )
 }
+export default App
