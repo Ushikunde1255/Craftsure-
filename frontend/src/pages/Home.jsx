@@ -1,34 +1,69 @@
-import { Link } from 'react-router-dom';
+import { useState } from "react";
+import BrandAd from "../components/BrandAd";
+
+const artisans = [
+  { id: 1, name: "Tunde Tiler", skill: "Tiler • Ojo, Lagos", rating: 5.0, jobs: 47, sponsored: true },
+  { id: 2, name: "Musa Carpenter", skill: "Carpenter • Onireke, Lagos", rating: 4.9, jobs: 32, sponsored: false },
+  { id: 3, name: "Emeka Electrician", skill: "Electrician • Ikeja", rating: 4.8, jobs: 51, sponsored: false },
+];
 
 export default function Home() {
-  const user = JSON.parse(localStorage.getItem('user') || 'null');
+  const [search, setSearch] = useState("");
+
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', fontFamily: 'sans-serif' }}>
-      <div style={{ background: 'linear-gradient(135deg,#5a31f5,#8a5cf5)', color: 'white', padding: '60px 20px', borderRadius: '0 0 30px 30px', textAlign: 'center' }}>
-        <h1 style={{ fontSize: '32px', margin: '0 0 10px' }}>Find Trusted Artisans in 2 Minutes 🇳🇬</h1>
-        <p style={{ fontSize: '18px', opacity: 0.9 }}>No more fake artisans. Real people, real photos, real WhatsApp</p>
-        <div style={{ marginTop: '25px', display: 'flex', gap: '12px', justifyContent: 'center' }}>
-          <Link to="/artisans" style={{ background: 'white', color: '#5a31f5', padding: '14px 28px', borderRadius: '12px', fontWeight: 'bold', textDecoration: 'none' }}>Find Artisan</Link>
-          <Link to="/post" style={{ background: '#25D366', color: 'white', padding: '14px 28px', borderRadius: '12px', fontWeight: 'bold', textDecoration: 'none' }}>Post Job Free</Link>
-        </div>
-        {user && <p style={{ marginTop: '20px', fontSize: '16px' }}>Welcome back, {user.name}! You have posted jobs with real name.</p>}
+    <div className="min-h-screen bg-gray-50 pb-20">
+      {/* Header */}
+      <div className="bg-black text-white p-4 sticky top-0 z-10">
+        <h1 className="text-xl font-bold">Craftsure NG 🔒</h1>
+        <p className="text-xs text-gray-300">Escrow for Artisans • Pay only when job is done</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', padding: '20px', textAlign: 'center' }}>
-        <div style={{ background: 'white', padding: '15px', borderRadius: '12px' }}><h3>9+</h3><p style={{ fontSize: '12px' }}>Jobs Posted</p></div>
-        <div style={{ background: 'white', padding: '15px', borderRadius: '12px' }}><h3>50+</h3><p style={{ fontSize: '12px' }}>Artisans</p></div>
-        <div style={{ background: 'white', padding: '15px', borderRadius: '12px' }}><h3>100%</h3><p style={{ fontSize: '12px' }}>Verified via WhatsApp</p></div>
+      {/* Search */}
+      <div className="p-4">
+        <input
+          type="text"
+          placeholder="Find carpenter, tiler, plumber in Lagos..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full p-3 rounded-full border border-gray-300 focus:outline-none focus:border-black"
+        />
       </div>
 
-      <div style={{ padding: '20px' }}>
-        <h3>How It Works</h3>
-        <div style={{ display: 'flex', gap: '15px', marginTop: '15px' }}>
-          <div style={{ flex: 1, background: 'white', padding: '15px', borderRadius: '12px' }}><b>1. Post</b><p style={{ fontSize: '13px' }}>Take photo of work, add budget</p></div>
-          <div style={{ flex: 1, background: 'white', padding: '15px', borderRadius: '12px' }}><b>2. Get WhatsApp</b><p style={{ fontSize: '13px' }}>Artisans message you</p></div>
-          <div style={{ flex: 1, background: 'white', padding: '15px', borderRadius: '12px' }}><b>3. Done</b><p style={{ fontSize: '13px' }}>Pay after work</p></div>
-        </div>
-        <Link to="/jobs" style={{ display: 'block', marginTop: '20px', background: '#5a31f5', color: 'white', textAlign: 'center', padding: '16px', borderRadius: '12px', textDecoration: 'none', fontWeight: 'bold' }}>Browse All Jobs →</Link>
+      {/* Categories */}
+      <div className="px-4 flex gap-2 overflow-x-auto pb-2">
+        {["All", "Carpenter", "Tiler", "Electrician", "Plumber", "Painter"].map((cat) => (
+          <button key={cat} className="whitespace-nowrap px-4 py-2 bg-white rounded-full border text-sm font-medium hover:bg-black hover:text-white">
+            {cat}
+          </button>
+        ))}
+      </div>
+
+      {/* 🔥 MONEY MAKER AD - SPONSORED ARTISAN */}
+      <BrandAd />
+
+      {/* Artisans List */}
+      <div className="px-4 mt-4 space-y-3">
+        <h2 className="font-bold">Verified Artisans near you</h2>
+        {artisans.map((a) => (
+          <div key={a.id} className={`bg-white p-4 rounded-xl shadow-sm border flex justify-between items-center ${a.sponsored? 'border-yellow-400 border-2' : ''}`}>
+            <div>
+              <div className="flex gap-2 items-center">
+                <h3 className="font-bold">{a.name}</h3>
+                {a.sponsored && <span className="text-[10px] bg-yellow-400 text-black px-2 py-0.5 rounded-full font-bold">SPONSORED</span>}
+              </div>
+              <p className="text-sm text-gray-500">{a.skill}</p>
+              <p className="text-xs mt-1">⭐ {a.rating} • {a.jobs} jobs completed • Verified ✅</p>
+            </div>
+            <button className="bg-black text-white px-4 py-2 rounded-full text-sm">Hire</button>
+          </div>
+        ))}
+      </div>
+
+      {/* How Escrow Works */}
+      <div className="m-4 p-4 bg-white rounded-xl border">
+        <h3 className="font-bold mb-2">How Craftsure Protects You 🛡️</h3>
+        <p className="text-sm text-gray-600">1. Pay to Craftsure (escrow) → 2. Artisan does work → 3. You approve → 4. We release money. 100% safe!</p>
       </div>
     </div>
   );
-      }
+}
