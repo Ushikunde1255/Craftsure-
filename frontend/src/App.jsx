@@ -1,73 +1,63 @@
-import { useState } from "react";
+import {useState} from "react";
 export default function App(){
 const [tab,setTab]=useState("home");
-const [showLogin,setShowLogin]=useState(false);
-const [isReg,setIsReg]=useState(false);
-const [view,setView]=useState(null);
-const [chat,setChat]=useState(null);
-const [adminView,setAdminView]=useState(null);
-const [msg,setMsg]=useState("");
-const [jobs,setJobs]=useState([{id:1,title:"Tile my 3 bedroom flat",loc:"Ojo, Lagos",budget:"₦80,000",desc:"Need tiler for kitchen and 2 bathrooms, 2 days work"}]);
-const [jTitle,setJTitle]=useState("");
-const [jLoc,setJLoc]=useState("");
-const [jBud,setJBud]=useState("");
-const [jDesc,setJDesc]=useState("");
+const [log,setLog]=useState(false);
+const [reg,setReg]=useState(false);
+const [v,setV]=useState(null);
+const [c,setC]=useState(null);
+const [av,setAv]=useState(null);
+const [m,setM]=useState("");
+const [jt,setJt]=useState("");
+const [jl,setJl]=useState("");
+const [jb,setJb]=useState("");
+const [jd,setJd]=useState("");
+const [lv,setLv]=useState("");
+const [jobs,setJobs]=useState([{id:1,t:"Tile my flat",l:"Ojo",b:"₦80k",d:"Need tiler"}]);
 const [chats,setChats]=useState({});
-const [loginVal,setLoginVal]=useState("");
-const artisans=[{id:1,name:"Tunde Tiler",role:"Tiler • Ojo",rate:"5 • 47 jobs",gold:true},{id:2,name:"Musa Carpenter",role:"Carpenter • Onireke",rate:"4.9 • 32 jobs",gold:false},{id:3,name:"Emeka Electrician",role:"Electrician • Festac",rate:"4.8 • 28 jobs",gold:false}];
-
-const send=()=>{
-if(!msg.trim()||!chat) return;
-const id=chat.id;
-setChats(p=>({...p,[id]:[...(p[id]||[]),{me:true,t:msg,time:new Date().toLocaleTimeString()}]}));
-setMsg("");
-setTimeout(()=>setChats(p=>({...p,[id]:[...(p[id]||[]),{me:false,t:"Oga I dey available! When we start? 🔧",time:new Date().toLocaleTimeString()} ]})),800);
-};
-
-const postJob=()=>{
-if(!jTitle||!jLoc||!jBud||!jDesc){alert("Fill ALL: Title, Location, Budget, Description");return;}
-setJobs([{id:Date.now(),title:jTitle,loc:jLoc,budget:jBud,desc:jDesc},...jobs]);
-setJTitle(""); setJLoc(""); setJBud(""); setJDesc(""); setTab("home");
-alert("Job Posted! Admin will verify ✅");
-};
-
-return(
-<div style={{background:'#f5f5f5',minHeight:'100vh',fontFamily:'sans-serif',paddingBottom:'60px'}}>
-
-<div style={{background:'#4338ca',color:'#fff',padding:'10px 12px',display:'flex',justifyContent:'space-between',alignItems:'center',position:'sticky',top:0,zIndex:10}}>
-<b>CraftSure 🇳🇬</b>
-<div style={{display:'flex',gap:'4px'}}>
-<button onClick={()=>setTab("home")} style={{background:tab==="home"?"#7c3aed":"rgba(255,255,255,0.2)",color:'#fff',border:'none',padding:'5px 9px',borderRadius:'8px',fontSize:'10px'}}>Home</button>
-<button onClick={()=>setTab("post")} style={{background:tab==="post"?"#22c55e":"rgba(255,255,255,0.2)",color:'#fff',border:'none',padding:'5px 9px',borderRadius:'8px',fontSize:'10px'}}>Post Job</button>
-<button onClick={()=>setTab("admin")} style={{background:tab==="admin"?"#f59e0b":"rgba(255,255,255,0.2)",color:'#fff',border:'none',padding:'5px 9px',borderRadius:'8px',fontSize:'10px'}}>Admin</button>
-<button onClick={()=>setShowLogin(true)} style={{background:'#fff',color:'#4338ca',border:'none',padding:'5px 10px',borderRadius:'12px',fontSize:'10px',fontWeight:'bold'}}>Login</button>
-</div>
-</div>
+const arts=[{id:1,n:"Tunde Tiler",r:"Tiler • Ojo",s:"5 • 47",g:1},{id:2,n:"Musa Carpenter",r:"Carpenter • Onireke",s:"4.9 • 32",g:0}];
+const send=()=>{if(!m.trim()||!c)return;const id=c.id;setChats(p=>({...p,[id]:[...(p[id]||[]),{me:1,x:m}]}));setM("");setTimeout(()=>setChats(p=>({...p,[id]:[...(p[id]||[]),{me:0,x:"Oga I dey! 🔧"}]})),700);};
+const post=()=>{if(!jt||!jl||!jb||!jd)return alert("Fill all fields");setJobs([{id:Date.now(),t:jt,l:jl,b:jb,d:jd},...jobs]);setJt("");setJl("");setJb("");setJd("");setTab("home");};
+return(<div style={{background:'#f5f5f5',minHeight:'100vh',fontFamily:'sans-serif',paddingBottom:'60px'}}>
+<div style={{background:'#4338ca',color:'#fff',padding:'10px',display:'flex',justifyContent:'space-between',position:'sticky',top:0,zIndex:10}}><b>CraftSure 🇳🇬</b><div style={{display:'flex',gap:'4px'}}>
+<button onClick={()=>setTab("home")} style={{background:'#7c3aed',color:'#fff',border:'none',padding:'5px 8px',borderRadius:'8px',fontSize:'10px'}}>Home</button>
+<button onClick={()=>setTab("post")} style={{background:'#22c55e',color:'#fff',border:'none',padding:'5px 8px',borderRadius:'8px',fontSize:'10px'}}>Post Job</button>
+<button onClick={()=>setTab("admin")} style={{background:'#f59e0b',color:'#fff',border:'none',padding:'5px 8px',borderRadius:'8px',fontSize:'10px'}}>Admin</button>
+<button onClick={()=>setLog(true)} style={{background:'#fff',color:'#4338ca',border:'none',padding:'5px 9px',borderRadius:'10px',fontSize:'10px',fontWeight:'bold'}}>Login</button>
+</div></div>
 
 {tab==="home"&&<div>
-<div style={{padding:'12px 15px 0'}}><h2 style={{margin:'0',fontSize:'22px'}}>CraftSure NG 🔒</h2><p style={{margin:'2px 0 0',fontSize:'11px',color:'#666'}}>Escrow Protected • Pay only when satisfied • Chat Monitored 🔍</p></div>
-
-<div style={{margin:'12px 15px',padding:'14px',borderRadius:'12px',background:'linear-gradient(90deg,#fde047,#fb923c)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-<div><span style={{background:'black',color:'#fff',fontSize:'7px',padding:'2px 6px',borderRadius:'6px'}}>AD • SPONSORED</span><div style={{fontWeight:'bold',fontSize:'13px',marginTop:'4px'}}>Need Building Materials? 🏗️</div><div style={{fontSize:'10px'}}>10% off — Use CRAFTSURE10</div></div>
-<button style={{background:'black',color:'#fff',border:'none',padding:'8px 12px',borderRadius:'15px',fontSize:'10px'}}>Shop Now</button>
-</div>
-
-<div style={{padding:'0 15px',display:'flex',justifyContent:'space-between',alignItems:'center'}}><b style={{fontSize:'12px'}}>Verified Artisans Near You</b><button onClick={()=>setTab("post")} style={{background:'#4338ca',color:'#fff',border:'none',padding:'4px 9px',borderRadius:'6px',fontSize:'10px'}}>+ Post Job</button></div>
-
-{artisans.map(a=><div key={a.id} style={{margin:'8px 15px',background:'#fff',padding:'11px',borderRadius:'10px',border:a.gold?'2px solid gold':'1px solid #eee'}}>
-<div style={{display:'flex',justifyContent:'space-between'}}><div><b style={{fontSize:'13px'}}>{a.name} {a.gold&&<span style={{background:'gold',fontSize:'7px',padding:'2px 5px',borderRadius:'4px'}}>SPONSORED</span>}</b><br/><small style={{fontSize:'10px',color:'#555'}}>{a.role} • ⭐ {a.rate}</small></div></div>
-{chats[a.id]&&<div style={{fontSize:'9px',color:'green',marginTop:'3px'}}>💬 {chats[a.id].length} msgs • Monitored by Admin 🔍</div>}
-<div style={{marginTop:'8px',display:'flex',gap:'5px'}}>
-<button onClick={()=>setView(a)} style={{flex:1,padding:'7px',background:'#f3f4f6',border:'none',borderRadius:'7px',fontSize:'10px'}}>Portfolio</button>
-<button onClick={()=>setChat(a)} style={{flex:1,padding:'7px',background:'#e0e7ff',border:'none',borderRadius:'7px',fontSize:'10px',fontWeight:'bold',color:'#4338ca'}}>💬 Chat</button>
-<button onClick={()=>setView(a)} style={{flex:1,padding:'7px',background:'black',color:'#fff',border:'none',borderRadius:'7px',fontSize:'10px',fontWeight:'bold'}}>Hire — Escrow 🔒</button>
-</div>
-</div>)}
-
-<div style={{margin:'15px',background:'#fff',padding:'10px',borderRadius:'8px',fontSize:'10px',color:'#666',textAlign:'center'}}>By using CraftSure you agree to our <b>Terms</b> — 5% Client + 10% Artisan escrow fees apply • Secure by Paystack</div>
+<div style={{padding:'10px 15px'}}><b style={{fontSize:'18px'}}>CraftSure NG 🔒</b><div style={{fontSize:'10px',color:'#666'}}>Escrow Protected • Pay only when satisfied • Chat Monitored 🔍</div></div>
+<div style={{margin:'10px 15px',padding:'12px',borderRadius:'10px',background:'linear-gradient(90deg,#fde047,#fb923c)',display:'flex',justifyContent:'space-between'}}><div><span style={{background:'black',color:'#fff',fontSize:'7px',padding:'2px 5px',borderRadius:'5px'}}>AD</span><div style={{fontWeight:'bold',fontSize:'12px'}}>Materials? 🏗️</div><div style={{fontSize:'9px'}}>10% off CRAFTSURE10</div></div><button style={{background:'black',color:'#fff',border:'none',padding:'6px 10px',borderRadius:'10px',fontSize:'10px'}}>Shop</button></div>
+{arts.map(a=><div key={a.id} style={{margin:'8px 15px',background:'#fff',padding:'10px',borderRadius:'10px',border:a.g?'2px solid gold':'1px solid #eee'}}><b style={{fontSize:'12px'}}>{a.n} {a.g?<span style={{background:'gold',fontSize:'7px',padding:'2px 4px',borderRadius:'4px'}}>SPONSORED</span>:null}</b><br/><small style={{fontSize:'10px'}}>{a.r} • ⭐ {a.s}</small>{chats[a.id]&&<div style={{fontSize:'9px',color:'green'}}>{chats[a.id].length} msgs monitored</div>}<div style={{display:'flex',gap:'4px',marginTop:'6px'}}><button onClick={()=>setV(a)} style={{flex:1,padding:'6px',background:'#eee',border:'none',borderRadius:'6px',fontSize:'10px'}}>Portfolio</button><button onClick={()=>setC(a)} style={{flex:1,padding:'6px',background:'#e0e7ff',border:'none',borderRadius:'6px',fontSize:'10px',fontWeight:'bold',color:'#4338ca'}}>Chat</button><button onClick={()=>setV(a)} style={{flex:1,padding:'6px',background:'black',color:'#fff',border:'none',borderRadius:'6px',fontSize:'10px',fontWeight:'bold'}}>Hire - Escrow 🔒</button></div></div>)}
+<div style={{margin:'12px 15px',background:'#fff',padding:'8px',borderRadius:'8px',fontSize:'9px',color:'#666',textAlign:'center'}}>By using CraftSure you agree to Terms — Escrow fees apply per T&C • Secure by Paystack</div>
 </div>}
 
-{tab==="post"&&<div style={{padding:'12px'}}>
-<h3 style={{fontSize:'14px',margin:'0 0 10px'}}>Post New Job — Full Details</h3>
-<div style={{background:'#fff',padding:'12px',borderRadius:'10px'}}>
-<input value={jTitle} onChange
+{tab==="post"&&<div style={{padding:'12px'}}><h3 style={{fontSize:'13px'}}>Post New Job</h3><div style={{background:'#fff',padding:'10px',borderRadius:'10px'}}>
+<input value={jt} onChange={e=>setJt(e.target.value)} placeholder="Job Title *" style={{width:'100%',padding:'9px',marginBottom:'6px',borderRadius:'6px',border:'1px solid #ddd',boxSizing:'border-box',fontSize:'11px'}}/>
+<input value={jl} onChange={e=>setJl(e.target.value)} placeholder="Location * Ojo, Lagos" style={{width:'100%',padding:'9px',marginBottom:'6px',borderRadius:'6px',border:'1px solid #ddd',boxSizing:'border-box',fontSize:'11px'}}/>
+<input value={jb} onChange={e=>setJb(e.target.value)} placeholder="Budget * ₦80,000" style={{width:'100%',padding:'9px',marginBottom:'6px',borderRadius:'6px',border:'1px solid #ddd',boxSizing:'border-box',fontSize:'11px'}}/>
+<textarea value={jd} onChange={e=>setJd(e.target.value)} placeholder="Description * What to do?" style={{width:'100%',padding:'9px',marginBottom:'8px',borderRadius:'6px',border:'1px solid #ddd',height:'70px',boxSizing:'border-box',fontSize:'11px'}}/>
+<button onClick={post} style={{width:'100%',padding:'10px',background:'#4338ca',color:'#fff',border:'none',borderRadius:'8px',fontWeight:'bold',fontSize:'12px'}}>Post Job</button>
+</div><div style={{marginTop:'10px'}}><b style={{fontSize:'11px'}}>Jobs ({jobs.length})</b>{jobs.map(j=><div key={j.id} style={{background:'#fff',padding:'8px',borderRadius:'8px',marginTop:'6px'}}><b style={{fontSize:'11px'}}>{j.t}</b><br/><small style={{fontSize:'10px'}}>📍 {j.l} • 💰 {j.b}</small><br/><small style={{fontSize:'10px'}}>{j.d}</small></div>)}</div></div>}
+
+{tab==="admin"&&<div style={{padding:'10px'}}><h3 style={{fontSize:'12px'}}>Admin Dashboard — Private 🔍</h3>
+<div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'6px'}}>
+<div style={{background:'#fff',padding:'10px',borderRadius:'8px',textAlign:'center'}}><h3 style={{margin:0,color:'#4338ca'}}>{arts.length}</h3><small style={{fontSize:'9px'}}>Artisans</small></div>
+<div style={{background:'#fff',padding:'10px',borderRadius:'8px',textAlign:'center'}}><h3 style={{margin:0,color:'#22c55e'}}>{jobs.length}</h3><small style={{fontSize:'9px'}}>Jobs</small></div>
+<div style={{background:'#fff',padding:'10px',borderRadius:'8px',textAlign:'center'}}><h3 style={{margin:0,color:'#f59e0b',fontSize:'14px'}}>₦{jobs.length*15000}</h3><small style={{fontSize:'9px'}}>Profit 15% Private</small></div>
+<div style={{background:'#fff',padding:'10px',borderRadius:'8px',textAlign:'center'}}><h3 style={{margin:0,color:'#ef4444'}}>{Object.values(chats).flat().length}</h3><small style={{fontSize:'9px'}}>Monitored</small></div>
+</div>
+<div style={{background:'#fff',marginTop:'8px',padding:'8px',borderRadius:'8px',fontSize:'10px'}}><b>Private: 5% + 10% = 15% (In T&C only)</b><br/>₦100k → Client ₦105k, Artisan ₦90k, You ₦15k — Show customer only "Escrow Fee"</div>
+<div style={{background:'#fff',marginTop:'8px',padding:'8px',borderRadius:'8px'}}><b style={{fontSize:'10px'}}>Monitored Chats</b>{Object.keys(chats).length===0&&<div style={{fontSize:'9px',color:'#999'}}>No chats yet</div>}{Object.entries(chats).map(([id,ms])=>{const a=arts.find(x=>x.id==id);return<div key={id} style={{border:'1px solid #eee',borderRadius:'6px',padding:'6px',marginTop:'6px',display:'flex',justifyContent:'space-between'}}><small style={{fontSize:'9px'}}>{a?.n} • {ms.length} msgs</small><button onClick={()=>setAv({a,ms})} style={{fontSize:'8px',background:'#4338ca',color:'#fff',border:'none',padding:'3px 7px',borderRadius:'4px'}}>View</button></div>})}</div>
+</div>}
+
+{log&&<div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.6)',zIndex:50,padding:'15px'}}><div style={{background:'#fff',padding:'12px',borderRadius:'10px',maxWidth:'300px',margin:'20px auto'}}><div style={{display:'flex',justifyContent:'space-between'}}><b style={{fontSize:'12px'}}>{reg?"Register":"Login — Phone OR Email"}</b><button onClick={()=>setLog(false)} style={{border:'none',background:'#eee',width:'22px',height:'22px',borderRadius:'50%'}}>X</button></div><p style={{fontSize:'9px',color:'#666'}}>Phone OR Email</p>{reg&&<input placeholder="Full Name" style={{width:'100%',padding:'8px',marginTop:'5px',borderRadius:'6px',border:'1px solid #ddd',boxSizing:'border-box',fontSize:'10px'}}/>}<input value={lv} onChange={e=>setLv(e.target.value)} placeholder="Phone 080... OR you@gmail.com *" style={{width:'100%',padding:'8px',marginTop:'5px',borderRadius:'6px',border:'1px solid #ddd',boxSizing:'border-box',fontSize:'10px'}}/><input placeholder="Password *" type="password" style={{width:'100%',padding:'8px',marginTop:'5px',borderRadius:'6px',border:'1px solid #ddd',boxSizing:'border-box',fontSize:'10px'}}/>{reg&&<select style={{width:'100%',padding:'8px',marginTop:'5px',borderRadius:'6px',fontSize:'10px'}}><option>Client</option><option>Artisan</option></select>}<button onClick={()=>{if(!lv)return alert("Enter Phone or Email");if(!lv.includes("@")&&!lv.startsWith("0"))return alert("Phone start 0 or Email @");setLog(false);alert("Welcome: "+lv);}} style={{width:'100%',marginTop:'8px',padding:'9px',background:'#4338ca',color:'#fff',border:'none',borderRadius:'6px',fontWeight:'bold',fontSize:'11px'}}>{reg?"Create":"Login with Phone / Email"}</button><div style={{textAlign:'center',marginTop:'6px',fontSize:'10px'}}><span onClick={()=>setReg(!reg)} style={{color:'#4338ca',fontWeight:'bold'}}>{reg?"Have account? Login":"No account? Register"}</span></div></div></div>}
+
+{v&&<div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.7)',zIndex:40,padding:'12px'}}><div style={{background:'#fff',padding:'12px',borderRadius:'10px',maxWidth:'300px',margin:'10px auto'}}><div style={{display:'flex',justifyContent:'space-between'}}><b style={{fontSize:'12px'}}>{v.n} — Hire Safely</b><button onClick={()=>setV(null)} style={{border:'none',background:'#eee',width:'22px',height:'22px',borderRadius:'50%'}}>X</button></div><div style={{background:'#f8fafc',padding:'8px',borderRadius:'8px',marginTop:'8px',fontSize:'11px',border:'1px solid #e2e8f0'}}><div style={{display:'flex',justifyContent:'space-between'}}><span>Job:</span><b>₦100k</b></div><div style={{display:'flex',justifyContent:'space-between',color:'#64748b'}}><span>Escrow Fee:</span><span>₦5k</span></div><div style={{display:'flex',justifyContent:'space-between',fontWeight:'bold',borderTop:'1px solid #ddd',marginTop:'5px',paddingTop:'5px'}}><span>Total:</span><span style={{color:'#4338ca'}}>₦105k</span></div><div style={{fontSize:'9px',color:'#666',marginTop:'5px',textAlign:'center'}}>Artisan gets ₦90k after approval • Chat monitored 🔍</div><div style={{background:'#dcfce7',padding:'5px',borderRadius:'5px',marginTop:'5px',textAlign:'center',color:'#166534',fontSize:'9px'}}>🔒 Money safe until job done!</div></div><button onClick={()=>{alert("Escrow: Pay ₦105k, Artisan ₦90k after approval, You keep ₦15k (private)");setV(null);}} style={{width:'100%',marginTop:'8px',padding:'10px',background:'#22c55e',color:'#fff',border:'none',borderRadius:'8px',fontWeight:'bold',fontSize:'11px'}}>🔒 Pay ₦105k — Protected</button></div></div>}
+
+{c&&<div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'#fff',zIndex:60,display:'flex',flexDirection:'column'}}><div style={{background:'#4338ca',color:'#fff',padding:'8px 10px',display:'flex',justifyContent:'space-between'}}><div><b style={{fontSize:'11px'}}>💬 {c.n}</b><div style={{fontSize:'8px'}}>Monitored by Admin 🔍</div></div><button onClick={()=>setC(null)} style={{background:'rgba(255,255,255,0.2)',color:'#fff',border:'none',width:'22px',height:'22px',borderRadius:'50%'}}>X</button></div><div style={{flex:1,padding:'8px',overflowY:'auto',background:'#f9fafb'}}>{(chats[c.id]||[]).map((x,i)=><div key={i} style={{display:'flex',justifyContent:x.me?'flex-end':'flex-start',marginBottom:'6px'}}><div style={{background:x.me?'#4338ca':'#fff',color:x.me?'#fff':'#000',padding:'6px 10px',borderRadius:'12px',fontSize:'11px',maxWidth:'70%'}}>{x.x}</div></div>)}</div><div style={{display:'flex',gap:'4px',padding:'8px',borderTop:'1px solid #eee'}}><input value={m} onChange={e=>setM(e.target.value)} onKeyDown={e=>e.key==='Enter'&&send()} placeholder="Message..." style={{flex:1,padding:'8px',borderRadius:'20px',border:'1px solid #ddd',fontSize:'11px'}}/><button onClick={send} style={{background:'#4338ca',color:'#fff',border:'none',padding:'0 12px',borderRadius:'20px',fontSize:'11px'}}>Send</button></div></div>}
+
+{av&&<div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'#fff',zIndex:70,display:'flex',flexDirection:'column'}}><div style={{background:'#111827',color:'#fff',padding:'8px 10px',display:'flex',justifyContent:'space-between'}}><b style={{fontSize:'11px'}}>🔍 ADMIN MONITOR: {av.a.n}</b><button onClick={()=>setAv(null)} style={{background:'#374151',color:'#fff',border:'none',width:'22px',height:'22px',borderRadius:'50%'}}>X</button></div><div style={{flex:1,padding:'8px',overflowY:'auto',background:'#f3f4f6'}}>{av.ms.map((x,i)=><div key={i} style={{background:x.me?'#dbeafe':'#fff',padding:'6px 8px',borderRadius:'6px',marginBottom:'5px',borderLeft:x.me?'3px solid #4338ca':'3px solid #22c55e',fontSize:'11px'}}><b style={{fontSize:'9px'}}>{x.me?'Client: ':'Artisan: '}</b>{x.x}</div>)}</div></div>}
+
+</div>)
+                                                                                             }
