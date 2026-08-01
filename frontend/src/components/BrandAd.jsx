@@ -1,17 +1,21 @@
-// Brand Ad for CraftSure NG — Brands pay you!
 export default function BrandAd() {
   return (
-    <div className="mx-4 my-4 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-500 p-4 shadow-lg">
-      <div className="flex justify-between items-center">
-        <div>
-          <p className="text-xs font-bold bg-black text-white px-2 py-1 rounded">AD • Sponsored</p>
-          <h3 className="font-bold text-black mt-2">Need Building Materials?</h3>
-          <p className="text-sm text-black/80">Get 10% off at Dangote Cement — Use code CRAFTSURE10</p>
-        </div>
-        <button className="bg-black text-white px-4 py-2 rounded-full text-sm font-bold">
-          Shop Now
-        </button>
+    <div style={{
+      margin: '16px',
+      padding: '16px',
+      borderRadius: '16px',
+      background: 'linear-gradient(to right, #facc15, #f97316)',
+      boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center'
+    }}>
+      <div>
+        <span style={{fontSize:'10px', fontWeight:'bold', background:'black', color:'white', padding:'4px 8px', borderRadius:'12px'}}>AD • SPONSORED</span>
+        <h3 style={{fontWeight:'bold', color:'black', marginTop:'8px', fontSize:'18px'}}>Need Building Materials? 🏗️</h3>
+        <p style={{fontSize:'14px', color:'black'}}>Get 10% off Dangote Cement — Use CRAFTSURE10</p>
       </div>
+      <button style={{background:'black', color:'white', padding:'10px 16px', borderRadius:'24px', fontWeight:'bold', border:'none'}}>Shop Now</button>
     </div>
   )
 }
