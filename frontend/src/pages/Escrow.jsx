@@ -1,32 +1,51 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from "react";
+import { createClient } from "@supabase/supabase-js";
+
+const supa = createClient("https://unzohyrabvouclsjcpfu.supabase.co","sb_publishable_zB3k0KebVFw4-xf_TtdaUw_UlHsXk_q");
 
 export default function Escrow(){
   const [escrows,setEscrows]=useState([]);
+  const [loading,setLoading]=useState(true);
+
   useEffect(()=>{
-    const local=JSON.parse(localStorage.getItem('escrows')||'[]');
-    fetch('https://craftsure-1.onrender.com/api/escrow/all').then(r=>r.json()).then(d=>{
-      const server=Array.isArray(d)?d:d.escrows||[];
-      setEscrows([...server,...local]);
-    }).catch(()=>setEscrows(local));
+    const load=async()=>{
+      const {data}=await supa.from("payments").select("*").order("id",{ascending:false}).limit(20);
+      if(data)setEscrows(data);
+      setLoading(false);
+    };
+    load();
   },[]);
 
-  const clear=()=>{ if(confirm('Clear all local escrows?')){ localStorage.removeItem('escrows'); window.location.reload(); } };
+  if(loading) return <div style={{padding:"20px"}}>Loading escrow...</div>;
 
   return(
-    <div style={{ padding:'15px', background:'#f5f7fb', minHeight:'100vh' }}>
-      <div style={{ display:'flex', justifyContent:'space-between' }}>
-        <h2>Escrow - 15% Profit</h2>
-        <button onClick={clear} style={{ fontSize:'11px', height:'30px' }}>Clear Local</button>
-      </div>
-      <div style={{ background:'#fffbeb', padding:'10px', borderRadius:'10px', fontSize:'12px' }}>Client 5% + Artisan 10% = You keep 15%! Phone hidden until funded!</div>
-      {escrows.length===0 && <div style={{ background:'white', padding:'20px', marginTop:'10px', borderRadius:'10px' }}>No escrows yet. Go to Artisans → Click Hire!</div>}
+    <div style={{padding:"12px", background:"#f5f7fb", minHeight:"100vh", fontFamily:"sans-serif"}}>
+      <h3 style={{color:"#0A1931"}}>🔒 Escrow - Data Saver</h3>
+      <small style={{color:"#666"}}>Client pays, Artisan gets after job done</small>
+
+      {escrows.length===0 && <div style={{background:"#fff", padding:"20px", borderRadius:"12px", marginTop:"12px", textAlign:"center", color:"#999"}}>No escrow yet</div>}
+
       {escrows.map(m=>(
-        <div key={m._id} style={{ background:'white', padding:'14px', borderRadius:'12px', marginTop:'10px' }}>
-          <b>{m.jobTitle}</b> - {m.clientName} to {m.artisanName}<br/>
-          <span style={{ fontSize:'13px' }}>Price: {m.totalAmount} - Profit {(m.totalAmount*0.15).toFixed(0)} | {m.status}</span><br/>
-          <a href={`/chat/${m._id}`} style={{ background:'#f59e0b', color:'white', padding:'8px 10px', borderRadius:'8px', textDecoration:'none', fontSize:'12px', display:'inline-block', marginTop:'8px' }}>Chat 💬</a>
+        <div key={m.id} style={{background:"#fff", padding:"12px", borderRadius:"12px", marginTop:"10px", border:"1px solid #e5e7eb"}}>
+          <div style={{display:"flex", justifyContent:"space-between"}}>
+            <b>Job #{m.job_id}</b>
+            <span style={{background:"#FFD700", padding:"2px 8px", borderRadius:20, fontSize:"10px", fontWeight:"bold"}}>{m.percent_type}</span>
+          </div>
+          
+          <div style={{marginTop:"8px", fontSize:"12px"}}>
+            <div>Client paid: ₦{(m.amount||0).toLocaleString()}</div>
+            {/* For m35/m75/m100 amounts: */}
+            <div style={{marginTop:"4px", color:"#0A1931", fontWeight:"bold"}}>
+              Artisan gets: ₦{(m.artisanAmount || Math.round((m.amount||0)*0.9) || 70000).toLocaleString()}
+            </div>
+            <div style={{marginTop:"4px", color:"#22c55e", fontSize:"10px"}}>
+              Total received by Artisan: ₦{(m.totalReceivedByArtisan || m.artisanPrice || 70000).toLocaleString()}
+            </div>
+          </div>
+
+          <small style={{color:"#999", fontSize:"9px"}}>{m.payer_email} • {new Date(m.created_at).toLocaleDateString()}</small>
         </div>
       ))}
     </div>
   );
-}
+            }
