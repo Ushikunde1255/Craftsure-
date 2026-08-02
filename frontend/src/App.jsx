@@ -32,7 +32,8 @@ const signup=async()=>{const {error}=await supa.auth.signUp({email,password:pass
 const login=async()=>{const {error}=await supa.auth.signInWithPassword({email,password:pass});if(error)return alert(error.message);const u={email,role:email===ADMIN?"admin":"user"};localStorage.setItem("cs_user",JSON.stringify(u));setUser(u);setTab("home");};
 const up=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=v=>setJi(v.target.result);r.readAsDataURL(f);};
 const upArt=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=v=>setAport(v.target.result);r.readAsDataURL(f);};
-const upWorks=(e)=>{const files=Array.from(e.target.files).slice(0,3);files.forEach(f=>{const r=new FileReader();r.onload=(ev)=>{compressImage(ev.target.result,400,0.4).then(c=>{setAworks(prev=>[...prev,c].slice(0,3));});};r.readAsDataURL(f);});};
+const upWorks=e=>{
+const files=Array.from(e.target.files).slice(0,5);
 files.forEach(f=>{
 const r=new FileReader();
 r.onload=v=>{setAworks(prev=>[...prev, v.target.result].slice(0,5));};
