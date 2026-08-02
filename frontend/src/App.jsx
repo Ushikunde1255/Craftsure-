@@ -2,6 +2,7 @@ import {useState,useEffect} from "react";
 import {createClient} from "@supabase/supabase-js";
 const supa=createClient("https://unzohyrabvouclsjcpfu.supabase.co","sb_publishable_zB3k0KebVFw4-xf_TtdaUw_UlHsXk_q");
 const ADMIN="nicholasu9@gmail.com";
+const PAYSTACK_PK="pk_test_aaa1ae824c287d9865dd27a044670676c0df836d";
 const LOGO="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%230A1931'/%3E%3Cpath d='M30 28 L45 28 L42 42 L32 50 L18 38 Z M55 42 L62 48 L38 78 L30 78 L22 70 L30 62 L40 62 L55 42 Z M70 22 C78 22 86 28 86 38 C86 44 83 48 78 50 L62 56 L58 40 L64 36 C62 32 64 26 70 22 Z' fill='%23FFD700'/%3E%3C/svg%3E";
 
 export default function App(){
@@ -23,6 +24,8 @@ const {data:h}=await supa.from("hires").select("*").order("id",{ascending:false}
 const {data:ad}=await supa.from("ads").select("*").order("id",{ascending:false});if(ad)setAds(ad);
 };
 useEffect(()=>{load();const t=setInterval(load,4000);return()=>clearInterval(t);},[]);
+// Load Paystack script
+useEffect(()=>{const s=document.createElement("script");s.src="https://js.paystack.co/v1/inline.js";s.async=true;document.body.appendChild(s);return()=>{document.body.removeChild(s);};},[]);
 
 const signup=async()=>{const {error}=await supa.auth.signUp({email,password:pass});if(error)return alert(error.message);const u={email,role:email===ADMIN?"admin":"user"};localStorage.setItem("cs_user",JSON.stringify(u));setUser(u);setTab("home");};
 const login=async()=>{const {error}=await supa.auth.signInWithPassword({email,password:pass});if(error)return alert(error.message);const u={email,role:email===ADMIN?"admin":"user"};localStorage.setItem("cs_user",JSON.stringify(u));setUser(u);setTab("home");};
@@ -32,15 +35,10 @@ const upAd=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r
 
 const postJob=async()=>{if(!user)return alert("Login");await supa.from("jobs").insert([{title:jt,location:jl,budget:jb,description:jd,image_url:ji,created_by:user.email}]);setJt("");setJl("");setJb("");setJd("");setJi("");load();setTab("home");};
 const postArt=async()=>{if(!user)return alert("Login");await supa.from("artisans").insert([{name:an,skill:askill,location:aloc,whatsapp:awhat,portfolio:aport,bio:abio,rating:5.0,jobs_done:0,created_by:user.email,verified:true}]);load();setTab("artisans");};
-const postAd=async()=>{
-if(!user)return alert("Login");
-const amt=adPackage==="Basic"?20000:adPackage==="Premium"?50000:100000;
-await supa.from("ads").insert([{company_name:adCompany,title:adTitle,image_url:adImg,link:adLink,package:adPackage,amount:amt,created_by:user.email,status:"active"}]);
-setAdCompany("");setAdTitle("");setAdImg("");setAdLink("");load();setTab("home");
-};
+const postAd=async()=>{if(!user)return alert("Login");const amt=adPackage==="Basic"?20000:adPackage==="Premium"?50000:100000;await supa.from("ads").insert([{company_name:adCompany,title:adTitle,image_url:adImg,link:adLink,package:adPackage,amount:amt,created_by:user.email,status:"active"}]);setAdCompany("");setAdTitle("");setAdImg("");setAdLink("");load();setTab("home");};
 const delJob=async(id)=>{if(!confirm("Delete job?"))return;await supa.from("jobs").delete().eq("id",id);load();};
 const delAd=async(id)=>{if(!confirm("Delete ad?"))return;await supa.from("ads").delete().eq("id",id);load();};
-const hireArtisan=async(artisanEmail,artisanName,jobId)=>{const jid=jobId||chatJob?.id||jobs[0]?.id;if(!jid)return;await supa.from("hires").insert([{job_id:jid,client_email:user.email,artisan_email:artisanEmail,artisan_name:artisanName,status:"hired"}]);alert(`Hired ${artisanName}!`);load();setSelectedArt(null);};
+const hireArtisan=async(artisanEmail,artisanName,jobId)=>{const jid=jobId||chatJob?.id||jobs[0]?.id;if(!jid)return;await supa.from("hires").insert([{job_id:jid,client_email:user.email,artisan_email:artisanEmail,artisan_name:artisanName,status:"hired"}]);alert(`Hired ${artisanName}! Now pay service fee.`);load();setSelectedArt(null);};
 const sendMsg=async()=>{if(!chatTxt)return;await supa.from("messages").insert([{job_id:chatJob.id,sender:user.email,message:chatTxt}]);setChatTxt("");load();};
 
 const getBudget=(b)=>{let n=parseInt((b||"").replace(/[^0-9]/g,""))||0;if((b||"").toLowerCase().includes("k"))n=n*1000;return n;};
@@ -49,7 +47,25 @@ const clientPaid=(jobId)=>hasPaid(jobId,"5%_client");const artisanPaid=(jobId)=>
 const isHired=(jobId)=>hires.find(h=>h.job_id===jobId);
 
 const openPay=(job,type)=>{const b=getBudget(job.budget);const fee=type==="client"?Math.floor(b*0.05):Math.floor(b*0.10);const total=type==="client"?b+fee:fee;setPayModal({job,type,budget:b,fee,total});};
-const confirmPay=async()=>{if(!payModal)return;await supa.from("payments").insert([{job_id:payModal.job.id,payer_email:user.email,payer_type:payModal.type,amount:payModal.fee,percent_type:payModal.type==="client"?"5%_client":"10%_artisan",status:"paid"}]);setPayModal(null);load();};
+
+const payWithPaystack=()=>{
+if(!payModal)return;if(!window.PaystackPop)return alert("Paystack loading, wait 2 sec and try again");
+const amountKobo=payModal.type==="client"?payModal.total*100:payModal.fee*100;
+const handler=window.PaystackPop.setup({
+key:PAYSTACK_PK,
+email:user.email,
+amount:amountKobo,
+currency:"NGN",
+ref:"CS_"+Math.floor(Math.random()*1000000000),
+metadata:{job_id:payModal.job.id, type:payModal.type, budget:payModal.budget, fee:payModal.fee},
+callback:async function(response){
+await supa.from("payments").insert([{job_id:payModal.job.id,payer_email:user.email,payer_type:payModal.type,amount:payModal.fee,percent_type:payModal.type==="client"?"5%_client":"10%_artisan",status:"paid",created_at:new Date().toISOString()}]);
+setPayModal(null);alert("✅ Payment Successful! Ref: "+response.reference+" - Contact Unlocked! Money entered your Paystack test balance.");load();
+},
+onClose:function(){alert("Payment cancelled");},
+});
+handler.openIframe();
+};
 
 const filteredArts=arts.filter(a=>{const skillOk=!searchSkill||a.skill?.toLowerCase().includes(searchSkill.toLowerCase())||a.name?.toLowerCase().includes(searchSkill.toLowerCase());const locOk=!searchLoc||a.location?.toLowerCase().includes(searchLoc.toLowerCase());return skillOk&&locOk;});
 
@@ -77,20 +93,8 @@ return(
 </div>
 
 {tab==="home"&&<div>
-{/* BRAND ADS BANNER - TOP */}
-{ads.length>0&&<div style={{background:"#0A1931",padding:"8px 10px"}}>
-<div style={{display:"flex",gap:"8px",overflowX:"auto",scrollbarWidth:"none"}}>
-{ads.map(ad=>(
-<div key={ad.id} onClick={()=>window.open(ad.link,"_blank")} style={{minWidth:"280px",background:"#fff",borderRadius:10,overflow:"hidden",display:"flex",cursor:"pointer",border:"2px solid #FFD700"}}>
-<img src={ad.image_url} style={{width:70,height:70,objectFit:"cover"}} alt="ad"/>
-<div style={{padding:"6px",flex:1}}><small style={{background:"#FFD700",color:"#0A1931",padding:"1px 5px",borderRadius:10,fontSize:8,fontWeight:"bold"}}>Sponsored • {ad.package}</small><br/><b style={{fontSize:11}}>{ad.company_name}</b><br/><small style={{fontSize:9}}>{ad.title}</small></div>
-</div>
-))}
-</div>
-<div style={{textAlign:"center",marginTop:"4px"}}><small style={{color:"#FFD700",fontSize:8}}>↑ Brands advertise here • Earn for CraftSure</small></div>
-</div>}
-
-<div style={{padding:"10px 15px"}}><b>Jobs ({jobs.length})</b><div style={{fontSize:10,color:"#666"}}>Chat to hire • Service fee at checkout • Ads fund platform</div></div>
+{ads.length>0&&<div style={{background:"#0A1931",padding:"8px 10px"}}><div style={{display:"flex",gap:"8px",overflowX:"auto"}}>{ads.map(ad=><div key={ad.id} onClick={()=>window.open(ad.link,"_blank")} style={{minWidth:"280px",background:"#fff",borderRadius:10,overflow:"hidden",display:"flex",cursor:"pointer",border:"2px solid #FFD700"}}><img src={ad.image_url} style={{width:70,height:70,objectFit:"cover"}} alt="ad"/><div style={{padding:"6px",flex:1}}><small style={{background:"#FFD700",color:"#0A1931",padding:"1px 5px",borderRadius:10,fontSize:8,fontWeight:"bold"}}>Sponsored • {ad.package}</small><br/><b style={{fontSize:11}}>{ad.company_name}</b><br/><small style={{fontSize:9}}>{ad.title}</small></div></div>)}</div></div>}
+<div style={{padding:"10px 15px"}}><b>Jobs ({jobs.length})</b><div style={{fontSize:10,color:"#666"}}>Chat to hire • Service fee at checkout • Real Paystack Live</div></div>
 {jobs.map(j=>{
 const b=getBudget(j.budget);const hired=isHired(j.id);const unlocked=bothPaid(j.id);
 return(
@@ -107,99 +111,80 @@ return(
 </div>
 </div>
 )})}
-
-{/* INLINE AD BETWEEN JOBS */}
-{ads.length>0&&jobs.length>1&&<div style={{margin:"10px 15px",background:"#fff",borderRadius:12,border:"2px solid #FFD700",overflow:"hidden"}}>
-<div style={{background:"#FFD700",color:"#0A1931",padding:"4px 10px",fontSize:9,fontWeight:"bold",display:"flex",justifyContent:"space-between"}}><span>🔥 Sponsored - Brands</span><span>Ad</span></div>
-{ads.slice(0,1).map(ad=>(
-<div key={ad.id} style={{display:"flex",gap:"10px",padding:"10px"}}>
-<img src={ad.image_url} style={{width:90,height:90,borderRadius:10,objectFit:"cover"}} alt="ad"/>
-<div><small style={{background:"#0A1931",color:"#FFD700",padding:"2px 6px",borderRadius:10,fontSize:8}}>{ad.company_name} • {ad.package}</small><br/><b style={{fontSize:12}}>{ad.title}</b><br/><small style={{fontSize:10}}>Trusted by 1000+ artisans on CraftSure</small><br/><button onClick={()=>window.open(ad.link,"_blank")} style={{marginTop:"6px",padding:"6px 12px",background:"#0A1931",color:"#FFD700",border:"none",borderRadius:6,fontSize:10,fontWeight:"bold"}}>Visit Store →</button></div>
-</div>
-))}
-</div>}
 </div>}
 
 {tab==="artisans"&&<div style={{padding:"12px"}}>
 <h3>Artisans • Portfolio</h3>
 <div style={{background:"#fff",padding:"10px",borderRadius:12,marginBottom:"10px",display:"flex",gap:"6px",border:"1px solid #e5e7eb"}}>
-<input value={searchSkill} onChange={e=>setSearchSkill(e.target.value)} placeholder="Search skill e.g. Tiler" style={{flex:1,padding:"8px",borderRadius:8,border:"1px solid #ddd",fontSize:12}}/>
-<input value={searchLoc} onChange={e=>setSearchLoc(e.target.value)} placeholder="Location e.g. Lagos" style={{flex:1,padding:"8px",borderRadius:8,border:"1px solid #ddd",fontSize:12}}/>
+<input value={searchSkill} onChange={e=>setSearchSkill(e.target.value)} placeholder="Search skill" style={{flex:1,padding:"8px",borderRadius:8,border:"1px solid #ddd",fontSize:12}}/>
+<input value={searchLoc} onChange={e=>setSearchLoc(e.target.value)} placeholder="Location" style={{flex:1,padding:"8px",borderRadius:8,border:"1px solid #ddd",fontSize:12}}/>
 <button onClick={()=>{setSearchSkill("");setSearchLoc("");}} style={{padding:"8px 10px",borderRadius:8,border:"none",background:"#0A1931",color:"#FFD700",fontSize:11}}>Clear</button>
 </div>
-<div style={{fontSize:11,color:"#666",marginBottom:"8px"}}>Showing {filteredArts.length} artisans</div>
 {filteredArts.map(a=>(
 <div key={a.id} onClick={()=>setSelectedArt(a)} style={{background:"#fff",padding:"10px",borderRadius:12,marginBottom:"10px",display:"flex",gap:"10px",border:"1px solid #e5e7eb",cursor:"pointer"}}>
 {a.portfolio&&<img src={a.portfolio} style={{width:70,height:70,borderRadius:12,objectFit:"cover",border:"2px solid #FFD700"}} alt="port"/>}
 <div style={{flex:1}}>
 <div style={{display:"flex",alignItems:"center",gap:"6px"}}><b>{a.name}</b>{a.verified&&<span style={{background:"#0A1931",color:"#FFD700",padding:"1px 5px",borderRadius:10,fontSize:8}}>✓ Verified</span>}<small style={{background:"#0A1931",color:"#FFD700",padding:"2px 6px",borderRadius:10,fontSize:8}}>{a.skill}</small></div>
 <div style={{display:"flex",alignItems:"center",gap:"4px",marginTop:"2px"}}><span style={{color:"#FFD700",fontSize:12}}>★★★★★</span><small style={{fontSize:10}}>{a.rating||"5.0"} • {a.jobs_done||0} jobs</small></div>
-<small style={{fontSize:11}}>📍 {a.location}</small><br/><small style={{fontSize:10,color:"#666",display:"block",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis",maxWidth:"180px"}}>{a.bio}</small>
+<small style={{fontSize:11}}>📍 {a.location}</small><br/><small style={{fontSize:10,color:"#666"}}>{a.bio}</small>
 </div>
-<button style={{padding:"6px 12px",background:"#0A1931",color:"#FFD700",border:"none",borderRadius:8,fontSize:10,height:"32px",fontWeight:"bold"}}>View Portfolio</button>
+<button style={{padding:"6px 12px",background:"#0A1931",color:"#FFD700",border:"none",borderRadius:8,fontSize:10,height:"32px",fontWeight:"bold"}}>View</button>
 </div>
 ))}
 </div>}
 
 {tab==="brands"&&<div style={{padding:"12px"}}>
-<h3>📢 Advertise Your Brand - Reach 10k+ Artisans & Clients</h3>
-<div style={{background:"#0A1931",color:"#fff",padding:"12px",borderRadius:12,marginTop:"10px"}}>
-<b style={{color:"#FFD700"}}>Why Advertise on CraftSure?</b><br/>
-<small>• 5000+ artisans in Lagos, Accra, Abuja<br/>• 2000+ clients post jobs monthly<br/>• Your cement, tools, materials seen by buyers<br/>• Starting from ₦20k/month</small>
-</div>
+<h3>📢 Advertise Your Brand</h3>
+<div style={{background:"#0A1931",color:"#fff",padding:"12px",borderRadius:12,marginTop:"10px"}}><b style={{color:"#FFD700"}}>Why Advertise on CraftSure?</b><br/><small>• 5000+ artisans • 2000+ clients monthly • Starting ₦20k/month</small></div>
 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"8px",marginTop:"10px"}}>
-<div style={{background:"#fff",padding:"10px",borderRadius:10,border:"1px solid #e5e7eb",textAlign:"center"}}><b>Basic</b><br/><h3>₦20k</h3><small style={{fontSize:9}}>1 Banner • 1 Month • Home Top</small></div>
-<div style={{background:"#FFD700",padding:"10px",borderRadius:10,textAlign:"center",border:"2px solid #0A1931"}}><b>Premium 🔥</b><br/><h3>₦50k</h3><small style={{fontSize:9}}>2 Banners • Top + Inline • 1 Month</small></div>
-<div style={{background:"#fff",padding:"10px",borderRadius:10,border:"1px solid #e5e7eb",textAlign:"center"}}><b>Gold</b><br/><h3>₦100k</h3><small style={{fontSize:9}}>All placements + Sponsored Job</small></div>
+<div style={{background:"#fff",padding:"10px",borderRadius:10,border:"1px solid #e5e7eb",textAlign:"center"}}><b>Basic</b><br/><h3>₦20k</h3><small style={{fontSize:9}}>1 Banner</small></div>
+<div style={{background:"#FFD700",padding:"10px",borderRadius:10,textAlign:"center",border:"2px solid #0A1931"}}><b>Premium 🔥</b><br/><h3>₦50k</h3><small style={{fontSize:9}}>2 Banners</small></div>
+<div style={{background:"#fff",padding:"10px",borderRadius:10,border:"1px solid #e5e7eb",textAlign:"center"}}><b>Gold</b><br/><h3>₦100k</h3><small style={{fontSize:9}}>All + Sponsored Job</small></div>
 </div>
 <div style={{background:"#fff",padding:"12px",borderRadius:12,marginTop:"12px"}}>
-<b>Post Your Ad - Pay to Admin via Paystack</b>
-<input value={adCompany} onChange={e=>setAdCompany(e.target.value)} placeholder="Company Name e.g. Dangote Cement" style={{width:"100%",padding:"10px",marginTop:"8px",borderRadius:"8px",border:"1px solid #ddd"}}/>
-<input value={adTitle} onChange={e=>setAdTitle(e.target.value)} placeholder="Ad Title e.g. 20% Off Cement!" style={{width:"100%",padding:"10px",marginTop:"8px",borderRadius:"8px",border:"1px solid #ddd"}}/>
-<input value={adLink} onChange={e=>setAdLink(e.target.value)} placeholder="Website Link https://" style={{width:"100%",padding:"10px",marginTop:"8px",borderRadius:"8px",border:"1px solid #ddd"}}/>
+<b>Post Ad</b>
+<input value={adCompany} onChange={e=>setAdCompany(e.target.value)} placeholder="Company Name" style={{width:"100%",padding:"10px",marginTop:"8px",borderRadius:"8px",border:"1px solid #ddd"}}/>
+<input value={adTitle} onChange={e=>setAdTitle(e.target.value)} placeholder="Ad Title" style={{width:"100%",padding:"10px",marginTop:"8px",borderRadius:"8px",border:"1px solid #ddd"}}/>
+<input value={adLink} onChange={e=>setAdLink(e.target.value)} placeholder="Website Link" style={{width:"100%",padding:"10px",marginTop:"8px",borderRadius:"8px",border:"1px solid #ddd"}}/>
 <select value={adPackage} onChange={e=>setAdPackage(e.target.value)} style={{width:"100%",padding:"10px",marginTop:"8px",borderRadius:"8px",border:"1px solid #ddd"}}>
 <option>Basic - ₦20k</option><option>Premium - ₦50k</option><option>Gold - ₦100k</option>
 </select>
 <input type="file" accept="image/*" onChange={upAd} style={{marginTop:"8px"}}/>
 {adImg&&<img src={adImg} style={{width:"100%",maxHeight:"180px",borderRadius:10,marginTop:"8px"}} alt="ad prev"/>}
-<button onClick={postAd} style={{width:"100%",marginTop:"10px",padding:"12px",background:"#0A1931",color:"#FFD700",border:"none",borderRadius:10,fontWeight:"bold"}}>Post Ad - Pay via Paystack (Admin Approves)</button>
-<small style={{display:"block",textAlign:"center",marginTop:"6px",fontSize:9,color:"#666"}}>Admin will verify payment & activate ad. Contact: nicholasu9@gmail.com</small>
+<button onClick={postAd} style={{width:"100%",marginTop:"10px",padding:"12px",background:"#0A1931",color:"#FFD700",border:"none",borderRadius:10,fontWeight:"bold"}}>Post Ad - Paystack</button>
 </div>
-<div style={{marginTop:"12px"}}><b>Live Ads ({ads.length})</b>{ads.map(ad=>(
-<div key={ad.id} style={{background:"#fff",padding:"8px",borderRadius:10,marginTop:"6px",display:"flex",gap:"8px",border:"1px solid #e5e7eb"}}>
-<img src={ad.image_url} style={{width:50,height:50,borderRadius:8,objectFit:"cover"}} alt="ad"/>
-<div style={{flex:1}}><b style={{fontSize:11}}>{ad.company_name}</b> <small style={{background:"#FFD700",padding:"1px 4px",borderRadius:8,fontSize:8}}>{ad.package}</small><br/><small style={{fontSize:10}}>{ad.title} - ₦{ad.amount?.toLocaleString()}</small></div>
-{isAdmin&&<button onClick={()=>delAd(ad.id)} style={{background:"#fee2e2",border:"none",borderRadius:"50%",width:28,height:28}}>🗑️</button>}
-</div>
-))}</div>
+<div style={{marginTop:"12px"}}><b>Live Ads ({ads.length})</b>{ads.map(ad=><div key={ad.id} style={{background:"#fff",padding:"8px",borderRadius:10,marginTop:"6px",display:"flex",gap:"8px",border:"1px solid #e5e7eb"}}><img src={ad.image_url} style={{width:50,height:50,borderRadius:8,objectFit:"cover"}} alt="ad"/><div style={{flex:1}}><b style={{fontSize:11}}>{ad.company_name}</b> <small style={{background:"#FFD700",padding:"1px 4px",borderRadius:8,fontSize:8}}>{ad.package}</small><br/><small style={{fontSize:10}}>{ad.title} - ₦{ad.amount?.toLocaleString()}</small></div>{isAdmin&&<button onClick={()=>delAd(ad.id)} style={{background:"#fee2e2",border:"none",borderRadius:"50%",width:28,height:28}}>🗑️</button>}</div>)}</div>
 </div>}
 
-{tab==="post"&&<div style={{padding:"12px"}}><h3>Post a Job</h3><div style={{background:"#fff",padding:"12px",borderRadius:12}}><input value={jt} onChange={e=>setJt(e.target.value)} placeholder="Job Title" style={{width:"100%",padding:"10px",marginBottom:"8px",borderRadius:"8px",border:"1px solid #ddd"}}/><input value={jl} onChange={e=>setJl(e.target.value)} placeholder="Location" style={{width:"100%",padding:"10px",marginBottom:"8px",borderRadius:"8px",border:"1px solid #ddd"}}/><input value={jb} onChange={e=>setJb(e.target.value)} placeholder="Budget e.g. 80000" style={{width:"100%",padding:"10px",marginBottom:"8px",borderRadius:"8px",border:"1px solid #ddd"}}/><textarea value={jd} onChange={e=>setJd(e.target.value)} placeholder="Description" style={{width:"100%",padding:"10px",marginBottom:"8px",borderRadius:"8px",border:"1px solid #ddd",height:"70px"}}/><input type="file" accept="image/*" onChange={up} style={{marginBottom:"8px"}}/>{ji&&<img src={ji} style={{width:"100%",maxHeight:"180px",borderRadius:"10px",marginBottom:"8px"}} alt="prev"/>}<button onClick={postJob} style={{width:"100%",padding:"12px",background:"#0A1931",color:"#FFD700",border:"none",borderRadius:"10px",fontWeight:"bold"}}>Post Job</button><small style={{display:"block",textAlign:"center",marginTop:"6px",color:"#666",fontSize:10}}>Service fee applies at checkout</small></div></div>}
+{tab==="post"&&<div style={{padding:"12px"}}><h3>Post a Job</h3><div style={{background:"#fff",padding:"12px",borderRadius:12}}><input value={jt} onChange={e=>setJt(e.target.value)} placeholder="Job Title" style={{width:"100%",padding:"10px",marginBottom:"8px",borderRadius:"8px",border:"1px solid #ddd"}}/><input value={jl} onChange={e=>setJl(e.target.value)} placeholder="Location" style={{width:"100%",padding:"10px",marginBottom:"8px",borderRadius:"8px",border:"1px solid #ddd"}}/><input value={jb} onChange={e=>setJb(e.target.value)} placeholder="Budget e.g. 80000 - Fee adds like tax" style={{width:"100%",padding:"10px",marginBottom:"8px",borderRadius:"8px",border:"1px solid #ddd"}}/><textarea value={jd} onChange={e=>setJd(e.target.value)} placeholder="Description" style={{width:"100%",padding:"10px",marginBottom:"8px",borderRadius:"8px",border:"1px solid #ddd",height:"70px"}}/><input type="file" accept="image/*" onChange={up} style={{marginBottom:"8px"}}/>{ji&&<img src={ji} style={{width:"100%",maxHeight:"180px",borderRadius:10,marginBottom:"8px"}} alt="prev"/>}<button onClick={postJob} style={{width:"100%",padding:"12px",background:"#0A1931",color:"#FFD700",border:"none",borderRadius:"10px",fontWeight:"bold"}}>Post Job</button><small style={{display:"block",textAlign:"center",marginTop:"6px",color:"#666",fontSize:10}}>Budget + 5% service fee at checkout (like tax)</small></div></div>}
 
 {tab==="join"&&<div style={{padding:"12px"}}><h3>Join as Artisan</h3><div style={{background:"#fff",padding:"12px",borderRadius:"12px"}}><input value={an} onChange={e=>setAn(e.target.value)} placeholder="Full Name" style={{width:"100%",padding:"10px",marginBottom:"8px",borderRadius:"8px",border:"1px solid #ddd"}}/><input value={askill} onChange={e=>setAskill(e.target.value)} placeholder="Skill" style={{width:"100%",padding:"10px",marginBottom:"8px",borderRadius:"8px",border:"1px solid #ddd"}}/><input value={aloc} onChange={e=>setAloc(e.target.value)} placeholder="Location" style={{width:"100%",padding:"10px",marginBottom:"8px",borderRadius:"8px",border:"1px solid #ddd"}}/><input value={awhat} onChange={e=>setAwhat(e.target.value)} placeholder="WhatsApp" style={{width:"100%",padding:"10px",marginBottom:"8px",borderRadius:"8px",border:"1px solid #ddd"}}/><input value={abio} onChange={e=>setAbio(e.target.value)} placeholder="Short bio" style={{width:"100%",padding:"10px",marginBottom:"8px",borderRadius:"8px",border:"1px solid #ddd"}}/><input type="file" accept="image/*" onChange={upArt} style={{marginBottom:"8px"}}/>{aport&&<img src={aport} style={{width:"100%",maxHeight:"180px",borderRadius:"10px",marginBottom:"8px"}} alt="port"/>}<button onClick={postArt} style={{width:"100%",padding:"12px",background:"#22c55e",color:"#fff",border:"none",borderRadius:"10px",fontWeight:"bold"}}>Create Portfolio</button></div></div>}
 
 {tab==="login"&&<div style={{padding:"20px",display:"flex",justifyContent:"center"}}><div style={{background:"#fff",padding:"16px",borderRadius:12,width:"100%",maxWidth:"340px"}}><b>Login - Secure</b><input value={email} onChange={e=>setEmail(e.target.value)} placeholder="Email" style={{width:"100%",padding:"10px",marginTop:"10px",borderRadius:"8px",border:"1px solid #ddd"}}/><input type="password" value={pass} onChange={e=>setPass(e.target.value)} placeholder="Password" style={{width:"100%",padding:"10px",marginTop:"8px",borderRadius:"8px",border:"1px solid #ddd"}}/><button onClick={login} style={{width:"100%",padding:"11px",background:"#0A1931",color:"#FFD700",border:"none",borderRadius:"8px",fontWeight:"bold",marginTop:"10px"}}>Login</button><button onClick={signup} style={{width:"100%",padding:"11px",background:"#fff",color:"#0A1931",border:"1px solid #0A1931",borderRadius:"8px",fontWeight:"bold",marginTop:"8px"}}>Create Account</button></div></div>}
 
-{tab==="admin"&&isAdmin&&<div style={{padding:"12px"}}>
-<h2>💰 Admin Revenue (Only You)</h2>
-<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px",marginTop:"10px"}}>
-<div style={{background:"#0A1931",color:"#fff",padding:"12px",borderRadius:12}}><small>Total Jobs</small><h2 style={{color:"#FFD700"}}>{jobs.length}</h2></div>
-<div style={{background:"#fff",padding:"12px",borderRadius:12,border:"1px solid #ddd"}}><small>Hired Jobs</small><h2>{hires.length}</h2></div>
-<div style={{background:"#FFD700",color:"#0A1931",padding:"12px",borderRadius:12}}><small>Client Fees (5%)</small><h2>₦{client5Total.toLocaleString()}</h2></div>
-<div style={{background:"#1e3a8a",color:"#fff",padding:"12px",borderRadius:12}}><small>Artisan Fees (10%)</small><h2>₦{artisan10Total.toLocaleString()}</h2></div>
-<div style={{background:"#22c55e",color:"#fff",padding:"12px",borderRadius:12}}><small>Ads Revenue 💰</small><h2>₦{adTotal.toLocaleString()}</h2><small>{ads.length} active ads</small></div>
-<div style={{background:"#0A1931",color:"#fff",padding:"12px",borderRadius:12,border:"2px solid #FFD700"}}><small style={{color:"#FFD700"}}>GRAND TOTAL</small><h2 style={{color:"#FFD700"}}>₦{grand.toLocaleString()}</h2><small>15% + Ads</small></div>
-</div>
-<div style={{background:"#fff",padding:"12px",borderRadius:12,marginTop:"12px"}}><b>All Ads - You Approve</b>{ads.map(ad=><div key={ad.id} style={{fontSize:11,borderBottom:"1px solid #eee",padding:"4px 0",display:"flex",justifyContent:"space-between"}}><span>{ad.company_name} - {ad.package} - ₦{ad.amount}</span><button onClick={()=>delAd(ad.id)} style={{background:"#fee2e2",border:"none",borderRadius:"4px",padding:"2px 6px",fontSize:10}}>Delete</button></div>)}</div>
-</div>}
+{tab==="admin"&&isAdmin&&<div style={{padding:"12px"}}><h2>💰 Admin Revenue</h2><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px",marginTop:"10px"}}><div style={{background:"#0A1931",color:"#fff",padding:"12px",borderRadius:12}}><small>Total Jobs</small><h2 style={{color:"#FFD700"}}>{jobs.length}</h2></div><div style={{background:"#fff",padding:"12px",borderRadius:12,border:"1px solid #ddd"}}><small>Hired</small><h2>{hires.length}</h2></div><div style={{background:"#FFD700",color:"#0A1931",padding:"12px",borderRadius:12}}><small>Client 5%</small><h2>₦{client5Total.toLocaleString()}</h2></div><div style={{background:"#1e3a8a",color:"#fff",padding:"12px",borderRadius:12}}><small>Artisan 10%</small><h2>₦{artisan10Total.toLocaleString()}</h2></div><div style={{background:"#22c55e",color:"#fff",padding:"12px",borderRadius:12}}><small>Ads 💰</small><h2>₦{adTotal.toLocaleString()}</h2></div><div style={{background:"#0A1931",color:"#fff",padding:"12px",borderRadius:12,border:"2px solid #FFD700"}}><small style={{color:"#FFD700"}}>GRAND</small><h2 style={{color:"#FFD700"}}>₦{grand.toLocaleString()}</h2></div></div></div>}
 
 {tab==="chats"&&isAdmin&&<div style={{padding:"12px"}}><h2>👁️ All Chats</h2><div style={{background:"#fff",padding:"10px",borderRadius:12}}>{msgs.map(m=><div key={m.id} style={{borderBottom:"1px solid #eee",padding:"6px 0",fontSize:11}}><b>{m.sender}</b> Job {m.job_id}: {m.message}</div>)}</div></div>}
 
-{selectedArt&&<div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"#fff",zIndex:70,overflowY:"auto"}}><div style={{background:"#0A1931",color:"#fff",padding:"12px",display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0}}><div style={{display:"flex",alignItems:"center",gap:"8px"}}><img src={selectedArt.portfolio} style={{width:40,height:40,borderRadius:"50%",border:"2px solid #FFD700"}} alt="art"/><div><b style={{color:"#FFD700"}}>{selectedArt.name}</b><div style={{fontSize:10}}>{selectedArt.skill} • {selectedArt.location}</div></div></div><button onClick={()=>setSelectedArt(null)} style={{background:"#fff",border:"none",borderRadius:"50%",width:32,height:32}}>X</button></div><div style={{padding:"12px"}}><img src={selectedArt.portfolio} style={{width:"100%",height:260,objectFit:"cover",borderRadius:12,border:"3px solid #FFD700"}} alt="portfolio"/><div style={{display:"flex",gap:"6px",marginTop:"10px",flexWrap:"wrap"}}><span style={{background:"#0A1931",color:"#FFD700",padding:"4px 10px",borderRadius:20,fontSize:11}}>✓ Verified</span><span style={{background:"#FFD700",color:"#0A1931",padding:"4px 10px",borderRadius:20,fontSize:11,fontWeight:"bold"}}>★ {selectedArt.rating||5.0}</span><span style={{background:"#22c55e",color:"#fff",padding:"4px 10px",borderRadius:20,fontSize:11}}>{selectedArt.jobs_done||0} Jobs</span></div><div style={{background:"#f5f7fb",padding:"10px",borderRadius:10,marginTop:"10px"}}><b style={{fontSize:12}}>About</b><p style={{fontSize:12,marginTop:"4px",color:"#555"}}>{selectedArt.bio}</p></div><div style={{display:"flex",gap:"8px",marginTop:"14px"}}><button onClick={()=>{setChatJob(jobs[0]);setSelectedArt(null);}} style={{flex:1,padding:"12px",background:"#0A1931",color:"#FFD700",border:"none",borderRadius:10,fontWeight:"bold"}}>💬 Chat</button><button onClick={()=>hireArtisan(selectedArt.created_by,selectedArt.name)} style={{flex:1,padding:"12px",background:"#FFD700",color:"#0A1931",border:"none",borderRadius:10,fontWeight:"bold"}}>Hire Now</button></div></div></div>}
+{selectedArt&&<div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"#fff",zIndex:70,overflowY:"auto"}}><div style={{background:"#0A1931",color:"#fff",padding:"12px",display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0}}><div style={{display:"flex",alignItems:"center",gap:"8px"}}><img src={selectedArt.portfolio} style={{width:40,height:40,borderRadius:"50%",border:"2px solid #FFD700"}} alt="art"/><div><b style={{color:"#FFD700"}}>{selectedArt.name}</b><div style={{fontSize:10}}>{selectedArt.skill} • {selectedArt.location}</div></div></div><button onClick={()=>setSelectedArt(null)} style={{background:"#fff",border:"none",borderRadius:"50%",width:32,height:32}}>X</button></div><div style={{padding:"12px"}}><img src={selectedArt.portfolio} style={{width:"100%",height:260,objectFit:"cover",borderRadius:12,border:"3px solid #FFD700"}} alt="portfolio"/><div style={{display:"flex",gap:"6px",marginTop:"10px",flexWrap:"wrap"}}><span style={{background:"#0A1931",color:"#FFD700",padding:"4px 10px",borderRadius:20,fontSize:11}}>✓ Verified</span><span style={{background:"#FFD700",color:"#0A1931",padding:"4px 10px",borderRadius:20,fontSize:11,fontWeight:"bold"}}>★ {selectedArt.rating||5.0}</span></div><div style={{background:"#f5f7fb",padding:"10px",borderRadius:10,marginTop:"10px"}}><b style={{fontSize:12}}>About</b><p style={{fontSize:12,marginTop:"4px",color:"#555"}}>{selectedArt.bio}</p></div><div style={{display:"flex",gap:"8px",marginTop:"14px"}}><button onClick={()=>{setChatJob(jobs[0]);setSelectedArt(null);}} style={{flex:1,padding:"12px",background:"#0A1931",color:"#FFD700",border:"none",borderRadius:10,fontWeight:"bold"}}>💬 Chat</button><button onClick={()=>hireArtisan(selectedArt.created_by,selectedArt.name)} style={{flex:1,padding:"12px",background:"#FFD700",color:"#0A1931",border:"none",borderRadius:10,fontWeight:"bold"}}>Hire Now</button></div></div></div>}
 
 {chatJob&&<div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"#f5f7fb",zIndex:50,display:"flex",flexDirection:"column"}}><div style={{background:"#0A1931",color:"#fff",padding:"12px",display:"flex",justifyContent:"space-between",alignItems:"center"}}><div><b style={{color:"#FFD700"}}>Chat: {chatJob.title}</b><div style={{fontSize:10}}>Secure • Admin monitors</div></div><button onClick={()=>setChatJob(null)} style={{background:"#fff",border:"none",borderRadius:"50%",width:32,height:32}}>X</button></div><div style={{flex:1,overflowY:"auto",padding:"10px"}}>{msgs.filter(m=>m.job_id===chatJob.id).map(m=><div key={m.id} style={{background:m.sender===user.email?"#0A1931":"#fff",color:m.sender===user.email?"#FFD700":"#000",padding:"8px 10px",borderRadius:"12px",margin:"6px 0",maxWidth:"85%",marginLeft:m.sender===user.email?"auto":"0",fontSize:12,border:"1px solid #e5e7eb"}}><div style={{display:"flex",justifyContent:"space-between"}}><b style={{fontSize:9}}>{m.sender.split("@")[0]}</b>{chatJob.created_by===user.email&&m.sender!==user.email&&<button onClick={()=>hireArtisan(m.sender,m.sender.split("@")[0],chatJob.id)} style={{background:"#FFD700",color:"#0A1931",border:"none",borderRadius:6,padding:"2px 6px",fontSize:8,fontWeight:"bold"}}>Hire</button>}</div><div style={{marginTop:"4px"}}>{m.message}</div></div>)}</div><div style={{padding:"10px",background:"#fff",display:"flex",gap:"6px",borderTop:"1px solid #e5e7eb"}}><input value={chatTxt} onChange={e=>setChatTxt(e.target.value)} placeholder="Negotiate..." style={{flex:1,padding:"10px",borderRadius:20,border:"1px solid #ddd"}}/><button onClick={sendMsg} style={{padding:"10px 16px",background:"#0A1931",color:"#FFD700",border:"none",borderRadius:20,fontWeight:"bold"}}>Send</button></div></div>}
 
-{payModal&&<div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.6)",zIndex:60,display:"flex",alignItems:"center",justifyContent:"center",padding:"15px"}}><div style={{background:"#fff",borderRadius:16,width:"100%",maxWidth:"360px",overflow:"hidden"}}><div style={{background:"#0A1931",color:"#fff",padding:"14px"}}><b style={{color:"#FFD700"}}>Checkout</b></div><div style={{padding:"14px"}}><div style={{display:"flex",justifyContent:"space-between",marginBottom:"8px"}}><span>Budget</span><b>₦{payModal.budget.toLocaleString()}</b></div><div style={{display:"flex",justifyContent:"space-between",marginBottom:"8px",color:"#666",fontSize:12}}><span>Service Fee ({payModal.type==="client"?"5%":"10%"})</span><span>₦{payModal.fee.toLocaleString()}</span></div><div style={{borderTop:"1px dashed #ddd",margin:"10px 0"}}></div><div style={{display:"flex",justifyContent:"space-between",fontWeight:"bold",fontSize:16}}><span>Total</span><span>₦{payModal.type==="client"?payModal.total.toLocaleString():payModal.fee.toLocaleString()}</span></div><button onClick={confirmPay} style={{width:"100%",marginTop:"12px",padding:"12px",background:"#0A1931",color:"#FFD700",border:"none",borderRadius:10,fontWeight:"bold"}}>Pay via Paystack</button><button onClick={()=>setPayModal(null)} style={{width:"100%",marginTop:"8px",padding:"10px",background:"#fff",color:"#0A1931",border:"1px solid #ddd",borderRadius:10}}>Cancel</button></div></div></div>}
+{payModal&&<div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.6)",zIndex:60,display:"flex",alignItems:"center",justifyContent:"center",padding:"15px"}}>
+<div style={{background:"#fff",borderRadius:16,width:"100%",maxWidth:"360px",overflow:"hidden"}}>
+<div style={{background:"#0A1931",color:"#fff",padding:"14px"}}><b style={{color:"#FFD700"}}>Secure Checkout • Paystack</b><div style={{fontSize:10,color:"#ccc"}}>Budget + Service fee (like tax)</div></div>
+<div style={{padding:"14px"}}>
+<div style={{display:"flex",justifyContent:"space-between",marginBottom:"8px"}}><span>Budget Amount</span><b>₦{payModal.budget.toLocaleString()}</b></div>
+<div style={{display:"flex",justifyContent:"space-between",marginBottom:"8px",color:"#666",fontSize:12}}><span>Maintenance Fee ({payModal.type==="client"?"5% Service Fee":"10% Service Fee"})</span><span>₦{payModal.fee.toLocaleString()}</span></div>
+<div style={{borderTop:"1px dashed #ddd",margin:"10px 0"}}></div>
+<div style={{display:"flex",justifyContent:"space-between",fontWeight:"bold",fontSize:16}}><span>Total to Pay</span><span>₦{payModal.type==="client"?payModal.total.toLocaleString():payModal.fee.toLocaleString()}</span></div>
+<small style={{fontSize:9,color:"#666",display:"block",marginTop:"6px"}}>{payModal.type==="client"?"Client pays budget + 5% maintenance (like tax). Example: ₦80k budget = ₦84k total":"Artisan pays 10% maintenance to accept job"}</small>
+<button onClick={payWithPaystack} style={{width:"100%",marginTop:"12px",padding:"12px",background:"#0A1931",color:"#FFD700",border:"none",borderRadius:10,fontWeight:"bold"}}>Pay ₦{payModal.type==="client"?payModal.total.toLocaleString():payModal.fee.toLocaleString()} with Paystack</button>
+<button onClick={()=>setPayModal(null)} style={{width:"100%",marginTop:"8px",padding:"10px",background:"#fff",color:"#0A1931",border:"1px solid #ddd",borderRadius:10}}>Cancel</button>
+<div style={{textAlign:"center",marginTop:"8px"}}><small style={{fontSize:8,color:"#666"}}>🔒 Secured by Paystack • Test Mode: Use 4084084084084081 card</small></div>
+</div>
+</div>
+</div>}
 
 {pv&&<div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.96)",zIndex:100,display:"flex",flexDirection:"column"}}><div style={{display:"flex",justifyContent:"space-between",padding:"12px",color:"#fff"}}><b style={{color:"#FFD700"}}>Protected</b><button onClick={()=>setPv(null)} style={{background:"#fff",border:"none",borderRadius:"50%",width:32,height:32}}>X</button></div><div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center"}}><img src={pv} style={{maxWidth:"95%",maxHeight:"80vh",borderRadius:"8px"}} alt="full"/></div></div>}
 </div>
