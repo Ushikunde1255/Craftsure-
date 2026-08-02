@@ -24,7 +24,7 @@ const {data:p}=await supa.from("payments").select("*").order("id",{ascending:fal
 const {data:h}=await supa.from("hires").select("*").order("id",{ascending:false});if(h)setHires(h);
 const {data:ad}=await supa.from("ads").select("*").order("id",{ascending:false});if(ad)setAds(ad);
 };
-useEffect(()=>{load();const t=setInterval(load,3000);return()=>clearInterval(t);},[]);
+useEffect(()=>{load();},[]);
 useEffect(()=>{if(chatEndRef.current)chatEndRef.current.scrollIntoView({behavior:"smooth"});},[msgs,chatJob]);
 useEffect(()=>{const s=document.createElement("script");s.src="https://js.paystack.co/v1/inline.js";s.async=true;document.body.appendChild(s);return()=>{try{document.body.removeChild(s);}catch(e){}};},[]);
 
