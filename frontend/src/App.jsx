@@ -37,16 +37,17 @@ const upAd=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r
 const sendOtp=()=>{if(awhat.length<10)return alert("Enter valid phone");const code=Math.floor(100000+Math.random()*900000).toString();setOtpSent(code);alert("CraftSure NG code: "+code+" (Demo SMS)");};
 const verifyOtp=()=>{if(otpInput===otpSent){setPhoneVerified(true);alert("Phone verified! ✅");}else alert("Wrong code");};
 const postJob=async()=>{if(!user)return alert("Login first!");await supa.from("jobs").insert([{title:jt,location:jl,budget:jb,description:jd,image_url:ji,created_by:user.email}]);setJt("");setJl("");setJb("");setJd("");setJi("");load();setTab("home");};
-const postArt=async()=>{
-if(!an||!askill||!aloc||!awhat)return alert("Fill name, skill, location, phone");
+const const postArt=async()=>{
+if(!an||!askill||!aloc)return alert("Fill name, skill, location");
 if(!aport)return alert("Upload profile photo!");
-if(!phoneVerified)return alert("Verify phone! Click Send OTP");
-if(!verEmail)return alert("Enter email");
 if(aworks.length===0)return alert("Upload at least 1 Jobs Done photo");
+if(!phoneVerified &&!emailVerified)return alert("Verify EITHER Phone OR Email! Choose one.");
 const worksJson=JSON.stringify(aworks);
-const {error}=await supa.from("artisans").insert([{name:an,skill:askill,location:aloc,whatsapp:awhat,portfolio:aport,bio:abio||"Verified by CraftSure NG",works:worksJson,rating:4.9,jobs_done:aworks.length,created_by:verEmail||user?.email||"guest",verified:true,phone_verified:phoneVerified}]);
+const const payload={name:an,skill:askill,location:aloc,portfolio:aport,bio:abio||"Verified by CraftSure NG",works:worksJson,rating:4.9,jobs_done:aworks.length,verified:true,created_by:verEmail||awhat||user?.email||"guest"};
+const {error}=await supa.from("artisans").insert([payload]);
 if(error){alert("Error: "+error.message);return;}
-alert("✅ "+an+" verified with "+aworks.length+" photos!");setAworks([]);setAn("");setAskill("");setAloc("");setAwhat("");setAport("");setAbio("");setPhoneVerified(false);setOtpSent("");load();setTab("artisans");
+alert("✅ "+an+" - Instagram portfolio saved! "+aworks.length+" photos - Verified via "+verMethod);
+setAworks([]);setAn("");setAskill("");setAloc("");setAwhat("");setAport("");setAbio("");setPhoneVerified(false);setEmailVerified(false);setOtpSent("");setOtpInput("");load();setTab("artisans");
 };
 const postAd=async()=>{if(!user)return alert("Login");const amt=adPackage==="Basic"?20000:adPackage==="Premium"?50000:100000;await supa.from("ads").insert([{company_name:adCompany,title:adTitle,image_url:adImg,link:adLink,package:adPackage,amount:amt,created_by:user.email,status:"active"}]);setAdCompany("");setAdTitle("");setAdImg("");setAdLink("");load();setTab("home");};
 const delJob=async(id)=>{if(!confirm("Delete?"))return;await supa.from("jobs").delete().eq("id",id);load();};
