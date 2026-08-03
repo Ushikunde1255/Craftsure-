@@ -3,8 +3,7 @@ import {createClient} from "@supabase/supabase-js";
 const supa=createClient("https://unzohyrabvouclsjcpfu.supabase.co","sb_publishable_zB3k0KebVFw4-xf_TtdaUw_UlHsXk_q");
 const ADMIN="nicholasu9@gmail.com";
 const PAYSTACK_PK="pk_test_aaa1ae824c287d9865dd27a044670676c0df836d";
-const LOGO="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%230A1931'/%3E%3Ctext x='50' y='80' text-anchor='middle' font-size='14' fill='%23FFD700' font-weight='bold'%3ECS%3C/text%3E%3C/svg%3E";
-
+const LOGO="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 120'%3E%3Cpath d='M50 2 L92 22 L92 58 C92 86 50 118 C50 118 8 86 8 58 L8 22 Z' fill='%230A1931' stroke='%23FFD700' stroke-width='3'/%3E%3Cg fill='%23FFD700'%3E%3Cpath d='M28 32 L48 20 L54 26 L44 38 L58 52 L38 68 L22 52 L36 38 Z'/%3E%3Cpath d='M62 28 C68 22 80 24 84 32 C86 38 82 44 76 48 L70 52 L66 48 L72 44 C74 42 75 38 72 35 C70 32 66 32 64 36 L58 42 L52 36 Z'/%3E%3Crect x='32' y='52' width='36' height='10' transform='rotate(45 50 57)' rx='3'/%3E%3C/g%3E%3C/svg%3E";
 export default function App(){
 const [tab,setTab]=useState("home");
 const [user,setUser]=useState(JSON.parse(localStorage.getItem("cs_user")||"null"));
