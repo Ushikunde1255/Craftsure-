@@ -35,10 +35,9 @@ const upArt=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
 const upWorks=e=>{const files=Array.from(e.target.files).slice(0,5);files.forEach(f=>{const r=new FileReader();r.onload=ev=>{compress(ev.target.result,500,0.4).then(c=>setAworks(p=>[...p,c].slice(0,5)));};r.readAsDataURL(f);});};
 const upAd=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{compress(ev.target.result,500,0.5).then(c=>setAdImg(c));};r.readAsDataURL(f);};
 const sendOtp=()=>{if(awhat.length<10)return alert("Enter valid phone");const code=Math.floor(100000+Math.random()*900000).toString();setOtpSent(code);alert("CraftSure NG code: "+code+" (Demo SMS)");};
-const verifyOtp=()=>{if(otpInput===otpSent){setPhoneVerified(true);alert("Phone verified! ✅");}else alert("Wrong code");};
+const const verifyOtp=()=>{if(otpInput===otpSent){setPhoneVerified(true);alert("Phone verified! ✅");}else alert("Wrong code");};
 const postJob=async()=>{if(!user)return alert("Login first!");await supa.from("jobs").insert([{title:jt,location:jl,budget:jb,description:jd,image_url:ji,created_by:user.email}]);setJt("");setJl("");setJb("");setJd("");setJi("");load();setTab("home");};
-const const postArt=async()=>{
-if(!an||!askill||!aloc)return alert("Fill name, skill, location");
+const postArt=async()=>{
 if(!aport)return alert("Upload profile photo!");
 if(aworks.length===0)return alert("Upload at least 1 Jobs Done photo");
 if(!phoneVerified &&!emailVerified)return alert("Verify EITHER Phone OR Email! Choose one.");
