@@ -42,7 +42,7 @@ if(!aport)return alert("Upload profile photo!");
 if(aworks.length===0)return alert("Upload at least 1 Jobs Done photo");
 if(!phoneVerified &&!emailVerified)return alert("Verify EITHER Phone OR Email! Choose one.");
 const worksJson=JSON.stringify(aworks);
-const const payload={name:an,skill:askill,location:aloc,portfolio:aport,bio:abio||"Verified by CraftSure NG",works:worksJson,rating:4.9,jobs_done:aworks.length,verified:true,created_by:verEmail||awhat||user?.email||"guest"};
+const payload={name:an,skill:askill,location:aloc,portfolio:aport,bio:abio||"Verified by CraftSure NG",works:worksJson,rating:4.9,jobs_done:aworks.length,verified:true,created_by:verEmail||awhat||user?.email||"guest"};
 const {error}=await supa.from("artisans").insert([payload]);
 if(error){alert("Error: "+error.message);return;}
 alert("✅ "+an+" - Instagram portfolio saved! "+aworks.length+" photos - Verified via "+verMethod);
