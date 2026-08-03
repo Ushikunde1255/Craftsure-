@@ -34,12 +34,17 @@ const compress=(b64,maxW,q)=>{return new Promise(r=>{const i=new Image();i.onloa
 const up=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{compress(ev.target.result,600,0.4).then(c=>setJi(c));};r.readAsDataURL(f);};
 const upArt=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{compress(ev.target.result,300,0.4).then(c=>setAport(c));};r.readAsDataURL(f);};
 const upWorks=e=>{const files=Array.from(e.target.files).slice(0,5);files.forEach(f=>{const r=new FileReader();r.onload=ev=>{compress(ev.target.result,500,0.4).then(c=>setAworks(p=>[...p,c].slice(0,5)));};r.readAsDataURL(f);});};
+const up=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{compress(ev.target.result,600,0.4).then(c=>setJi(c));};r.readAsDataURL(f);};
+const upArt=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{compress(ev.target.result,300,0.4).then(c=>setAport(c));};r.readAsDataURL(f);};
+const upWorks=e=>{const files=Array.from(e.target.files).slice(0,5);files.forEach(f=>{const r=new FileReader();r.onload=ev=>{compress(ev.target.result,500,0.4).then(c=>setAworks(p=>[...p,c].slice(0,5)));};r.readAsDataURL(f);});};
 const upAd=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=v=>setAdImg(v.target.result);r.readAsDataURL(f);};
 
 const postJob=async()=>{if(!user)return alert("Login");await supa.from("jobs").insert([{title:jt,location:jl,budget:jb,description:jd,image_url:ji,created_by:user.email}]);setJt("");setJl("");setJb("");setJd("");setJi("");load();setTab("home");};
-const postArt=async()=>{
-if(!user)return alert("Login");
-const worksJson=JSON.stringify(aworks);
+const const postArt=async()=>{
+if(!an||!askill||!aloc||!awhat)return alert("Fill name, skill, location, phone");
+if(!aport)return alert("Upload profile photo!");
+if(aworks.length===0)return alert("Upload at least 1 Jobs Done photo");
+  const worksJson=JSON.stringify(aworks);
 await supa.from("artisans").insert([{name:an,skill:askill,location:aloc,whatsapp:awhat,portfolio:aport,bio:abio,works:worksJson,rating:4.9,jobs_done:aworks.length,created_by:user.email,verified:true}]);
 setAworks([]);load();setTab("artisans");
 };
