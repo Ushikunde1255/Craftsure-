@@ -10,6 +10,9 @@ const [user,setUser]=useState(JSON.parse(localStorage.getItem("cs_user")||"null"
 const [email,setEmail]=useState("");const [pass,setPass]=useState("");
 const [jobs,setJobs]=useState([]);const [arts,setArts]=useState([]);const [msgs,setMsgs]=useState([]);const [pays,setPays]=useState([]);const [hires,setHires]=useState([]);const [ads,setAds]=useState([]);
 const [jt,setJt]=useState("");const [jl,setJl]=useState("");const [jb,setJb]=useState("");const [jd,setJd]=useState("");const [ji,setJi]=useState("");const [pv,setPv]=useState(null);
+const [proofs,setProofs]=useState(JSON.parse(localStorage.getItem("cs_proofs")||"{}"));
+const upProof=(e,jobId,stage)=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{compress(ev.target.result,600,0.5).then(c=>{const np={...proofs,[jobId+"_"+stage]:c};setProofs(np);localStorage.setItem("cs_proofs",JSON.stringify(np));alert("✅ "+stage+"% Proof Uploaded! Client can now pay next stage!");});};r.readAsDataURL(f);};
+const hasProof=(jobId,stage)=>!!proofs[jobId+"_"+stage];
 const [an,setAn]=useState("");const [askill,setAskill]=useState("");const [aloc,setAloc]=useState("");const [awhat,setAwhat]=useState("");const [aport,setAport]=useState("");const [abio,setAbio]=useState("");const [aworks,setAworks]=useState([]);
 const [chatJob,setChatJob]=useState(null);const [chatTxt,setChatTxt]=useState("");const [payModal,setPayModal]=useState(null);
 const [searchSkill,setSearchSkill]=useState("");const [searchLoc,setSearchLoc]=useState("");const [selectedArt,setSelectedArt]=useState(null);
