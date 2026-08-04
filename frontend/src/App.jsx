@@ -79,7 +79,7 @@ const postArt=async()=>{
 if(!an||!askill||!aloc)return alert("Fill name,skill,location");
 if(!aport)return alert("Profile photo needed"); if(aworks.length===0)return alert("Upload 1 job photo");
 if(!accNum)return alert("Enter Bank/Opay/MoMo number for payout");
-if(!pVer&&!eVer)return alert("Verify phone or email");
+if(!pVer) return alert("Verify phone number first - OTP required");
 const payload={name:an,skill:askill,location:aloc,whatsapp:awhat||verE,portfolio:aport,bio:"Verified - "+verM+" - "+payoutMethod+" "+accNum,works:JSON.stringify(aworks),rating:4.9,jobs_done:aworks.length,verified:true,created_by:verE||awhat||user?.email||"guest",phone_verified:pVer,email_verified:eVer,verification_method:verM,payout_method:payoutMethod,bank_name:bankName,account_number:accNum,account_name:accName||an};
 const {error}=await supa.from("artisans").insert([payload]); if(error)return alert(error.message);
 alert("✅ "+an+" Created - Payout set to "+payoutMethod+" "+accNum);
