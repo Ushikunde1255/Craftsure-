@@ -70,8 +70,8 @@ const openPay=(job,stage)=>{const b=getB(job.budget);const cf=Math.floor(b*0.07)
 const payNow=()=>{if(!payM||!window.PaystackPop)return;const h=window.PaystackPop.setup({key:PK,email:user?.email||"test@test.com",amount:payM.sa*100,currency:"NGN",ref:"CS"+Math.floor(Math.random()*1e9),callback:async(r)=>{await supa.from("payments").insert([{job_id:payM.job.id,payer_email:user.email,payer_type:"client",amount:payM.sa,artisan_amount:payM.ag,percent_type:payM.stage+"%",status:"paid",paystack_ref:r.reference}]);setPayM(null);alert("✅ Paid "+payM.sl);load();},onClose:()=>{}});h.openIframe();};
 const parseW=(w)=>{try{const a=JSON.parse(w||"[]");return Array.isArray(a)?a:[];}catch{return [];}};
 const isAdmin=user&&user.email===ADMIN;
-const c7Total=pays.filter(p=>p.payer_type==="client").reduce((s,p)=>s+Math.floor((p.amount||0)*0.05/1.05),0);
-const a3Total=pays.reduce((s,p)=>s+((p.amount||0)-(p.artisan_amount||0)),0);
+const c7Total=pays.filter(p=>p.payer_type==="client").reduce((s,p)=>s+Math.floor((p.amount||0)*0.07/1.07),0)
+const a3Total=pays.filter(p=>p.payer_type==="client").reduce((s,p)=>s+Math.floor((p.amount||0)*0.03/1.07),0)
 const adTotal=ads.reduce((s,a)=>s+(a.amount||0),0);const grand=c7Total+a3Total+adTotal;
 return(
 <div style={{background:"#f5f7fb",minHeight:"100vh"}}>
