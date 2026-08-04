@@ -4,24 +4,21 @@ const supa = createClient("https://unzohyrabvouclsjcpfu.supabase.co","sb_publish
 const ADMIN = "nicholasu9@gmail.com";
 const PK = "pk_test_aaa1ae824c287d9865dd27a044670676c0df836d";
 
+// PERMANENT V LOGO - HAMMER + SPANNER - YELLOW + NAVY BLUE
 const Logo = ()=>(
 <div style={{display:"flex",alignItems:"center",gap:9}}>
 <div style={{width:56,height:56,borderRadius:"50%",background:"#FFD700",border:"3px solid #fff",display:"flex",alignItems:"center",justifyContent:"center",padding:2}}>
-<div style={{width:"100%",height:"100%",borderRadius:"50%",background:"#0A1931",display:"flex",alignItems:"center",justifyContent:"center",position:"relative"}}>
-{/* V Hammer + Spanner */}
+<div style={{width:"100%",height:"100%",borderRadius:"50%",background:"#0A1931",display:"flex",alignItems:"center",justifyContent:"center"}}>
 <div style={{position:"relative",width:32,height:32}}>
-{/* Spanner - forms left of V */}
-<div style={{position:"absolute",left:2,top:2,width:14,height:6,background:"#FFD700",borderRadius:"3px 8px 8px 3px",transform:"rotate(-35deg)",transformOrigin:"right center"}}></div>
+<div style={{position:"absolute",left:2,top:2,width:14,height:6,background:"#FFD700",borderRadius:3,transform:"rotate(-35deg)",transformOrigin:"right center"}}></div>
 <div style={{position:"absolute",left:12,top:10,width:3,height:18,background:"#FFD700",transform:"rotate(-20deg)",borderRadius:2}}></div>
-{/* Hammer - forms right of V */}
-<div style={{position:"absolute",right:2,top:2,width:12,height:7,background:"#FFD700",borderRadius:"2px",transform:"rotate(35deg)",transformOrigin:"left center"}}></div>
+<div style={{position:"absolute",right:2,top:2,width:12,height:7,background:"#FFD700",borderRadius:2,transform:"rotate(35deg)",transformOrigin:"left center"}}></div>
 <div style={{position:"absolute",right:10,top:10,width:3,height:18,background:"#FFD700",transform:"rotate(20deg)",borderRadius:2}}></div>
-{/* V point */}
 <div style={{position:"absolute",left:"50%",bottom:0,width:6,height:6,background:"#FFD700",borderRadius:"50%",transform:"translateX(-50%)"}}></div>
 </div>
 </div>
 </div>
-<div><b style={{color:"#fff",fontSize:16,lineHeight:"1.05"}}>CraftSure<br/>NG</b><div style={{display:"flex",gap:2,marginTop:1}}><span style={{fontSize:10}}>🇳🇬</span><span style={{fontSize:10}}>🇬🇭</span></div><div style={{color:"#FFD700",fontSize:8,fontWeight:"bold",marginTop:-2}}>NIGERIA & GHANA • VERIFIED</div></div>
+<div><b style={{color:"#fff",fontSize:16,lineHeight:"1.05"}}>CraftSure<br/>NG</b><div style={{color:"#FFD700",fontSize:8,fontWeight:"bold"}}>NIGERIA & GHANA • VERIFIED</div></div>
 </div>
 );
 
@@ -49,7 +46,7 @@ const [selArt,setSelArt]=useState(null);
 const [payoutMethod,setPayoutMethod]=useState("Bank Account");
 const [bankName,setBankName]=useState("GTBank");
 const [accNum,setAccNum]=useState(""); const [accName,setAccName]=useState("");
-const [proofs,setProofs]=useState({}); // jobId -> {35:img,75:img,100:img}
+const [proofs,setProofs]=useState({});
 const chatEndRef=useRef(null);
 
 const load=async()=>{
@@ -92,36 +89,15 @@ const verifyPhoneOtp=()=>{if(otpI===otpS){setPVer(true);setVerM("phone");alert("
 const sendEmailOtp=()=>{if(!verE.includes("@"))return alert("Enter email");const c=Math.floor(100000+Math.random()*900000).toString();setOtpS(c);alert("OTP: "+c);};
 const verifyEmailOtp=()=>{if(otpI===otpS){setEVer(true);setVerM("email");alert("Email Verified ✅");}else alert("Wrong code");};
 const verifyAcc=()=>{if(accNum.length<8)return alert("Enter account");setAccName("Verified - "+an);alert("✅ Verified: "+payoutMethod+" "+bankName+" - "+accNum);};
-
 const postJob=async()=>{if(!user)return alert("Login first");if(!jt||!jl)return alert("Fill title & location");await supa.from("jobs").insert([{title:jt,location:jl,budget:jb,description:jd,image_url:ji,created_by:user.email}]);setJt("");setJl("");setJb("");setJd("");setJi("");load();setTab("home");};
-const postArt=async()=>{
-if(!an||!askill||!aloc)return alert("Fill name,skill,location");
-if(!aport)return alert("Profile photo needed"); if(aworks.length===0)return alert("Upload 1 job photo");
-if(!accNum)return alert("Enter Bank/Opay/MoMo number for payout");
-if(!pVer&&!eVer)return alert("Verify phone or email");
-const payload={name:an,skill:askill,location:aloc,whatsapp:awhat||verE,portfolio:aport,bio:"Verified - "+verM+" - "+payoutMethod+" "+accNum,works:JSON.stringify(aworks),rating:4.9,jobs_done:aworks.length,verified:true,created_by:verE||awhat||user?.email||"guest",phone_verified:pVer,email_verified:eVer,verification_method:verM,payout_method:payoutMethod,bank_name:bankName,account_number:accNum,account_name:accName||an};
-const {error}=await supa.from("artisans").insert([payload]); if(error)return alert(error.message);
-alert("✅ "+an+" Created - 3% fee only - Payout to "+payoutMethod); setAworks([]);setAn("");setAskill("");setAloc("");setAwhat("");setAport("");setAccNum("");setAccName("");setPVer(false);setEVer(false);setOtpS("");load();setTab("artisans");
-};
+const postArt=async()=>{if(!an||!askill||!aloc)return alert("Fill name,skill,location");if(!aport)return alert("Profile photo needed"); if(aworks.length===0)return alert("Upload 1 job photo");if(!accNum)return alert("Enter Bank/Opay/MoMo number");if(!pVer&&!eVer)return alert("Verify phone or email");const payload={name:an,skill:askill,location:aloc,whatsapp:awhat||verE,portfolio:aport,bio:"Verified - "+verM+" - "+payoutMethod+" "+accNum,works:JSON.stringify(aworks),rating:4.9,jobs_done:aworks.length,verified:true,created_by:verE||awhat||user?.email||"guest",phone_verified:pVer,email_verified:eVer,verification_method:verM,payout_method:payoutMethod,bank_name:bankName,account_number:accNum,account_name:accName||an};const {error}=await supa.from("artisans").insert([payload]); if(error)return alert(error.message);alert("✅ "+an+" Created"); setAworks([]);setAn("");setAskill("");setAloc("");setAwhat("");setAport("");setAccNum("");setAccName("");setPVer(false);setEVer(false);setOtpS("");load();setTab("artisans");};
 const postAd=async()=>{if(!adC||!adT)return alert("Fill company & title"); const amt=adP.includes("Basic")?20000:adP.includes("Premium")?50000:100000; const {error}=await supa.from("ads").insert([{company_name:adC,title:adT,image_url:adImg,link:adL,package:adP,amount:amt,created_by:user?.email||"guest",status:"active"}]); if(error)return alert(error.message); alert("✅ Ad Posted - Shows on Home!"); setAdC("");setAdT("");setAdImg("");setAdL(""); load(); setTab("home");};
 const hireArtisan=async(em,name,jid)=>{const id=jid||(chatJob&&chatJob.id)||(jobs[0]&&jobs[0].id); if(!id)return alert("Select job - Go Home first"); if(!user)return alert("Login first"); await supa.from("hires").insert([{job_id:id,client_email:user.email,artisan_email:em,artisan_name:name,status:"hired"}]); alert("✅ Hired "+name); load(); setSelArt(null);};
+const openPay=(job,stage)=>{const b=getB(job.budget);const ct=b+Math.floor(b*0.07);const at=b-Math.floor(b*0.03);let sa=0,ag=0,sl="";if(stage===35){sa=Math.floor(ct*0.35);ag=Math.floor(at*0.35);sl="35% Start";}else if(stage===75){sa=Math.floor(ct*0.40);ag=Math.floor(at*0.40);sl="40% Progress";}else{sa=Math.floor(ct*0.25);ag=Math.floor(at*0.25);sl="25% Final";}setPayM({job,stage,budget:b,ct,at,sa,ag,sl});};
+const payNow=()=>{if(!payM||!window.PaystackPop)return alert("Paystack loading..."); const h=window.PaystackPop.setup({key:PK,email:user?.email||"test@test.com",amount:payM.sa*100,currency:"NGN",ref:"CS"+Math.floor(Math.random()*1e9),callback:async(r)=>{await supa.from("payments").insert([{job_id:payM.job.id,payer_email:user.email,payer_type:"client",amount:payM.sa,artisan_amount:payM.ag,percent_type:payM.stage+"%",status:"held",paystack_ref:r.reference}]); setPayM(null); alert("✅ Paid "+payM.sl+" ₦"+payM.sa.toLocaleString()+" - Held"); load();},onClose:()=>{}}); h.openIframe();};
 
-// HIDDEN FEES - Applied only at payment time, not shown on card
-const openPay=(job,stage)=>{
-const b=getB(job.budget);
-// Client pays budget + 7% (hidden until payment), artisan gets budget - 3% (hidden)
-const ct=b+Math.floor(b*0.07); const at=b-Math.floor(b*0.03);
-let sa=0,ag=0,sl="";
-if(stage===35){sa=Math.floor(ct*0.35);ag=Math.floor(at*0.35);sl="35% Start";}
-else if(stage===75){sa=Math.floor(ct*0.40);ag=Math.floor(at*0.40);sl="40% Progress";}
-else{sa=Math.floor(ct*0.25);ag=Math.floor(at*0.25);sl="25% Final";}
-setPayM({job,stage,budget:b,ct,at,sa,ag,sl});
-};
-const payNow=()=>{if(!payM||!window.
-PaystackPop)return alert("Paystack loading..."); const h=window.PaystackPop.setup({key:PK,email:user?.email||"test@test.com",amount:payM.sa*100,currency:"NGN",ref:"CS"+Math.floor(Math.random()*1e9),callback:async(r)=>{await supa.from("payments").insert([{job_id:payM.job.id,payer_email:user.email,payer_type:"client",amount:payM.sa,artisan_amount:payM.ag,percent_type:payM.stage+"%",status:"held",paystack_ref:r.reference}]); setPayM(null); alert("✅ Paid "+payM.sl+" ₦"+payM.sa.toLocaleString()+" - Held in escrow"); load();},onClose:()=>{}}); h.openIframe();};
 return(
 <div style={{background:"#f5f7fb",minHeight:"100vh",fontFamily:"system-ui"}}>
-{/* HEADER WITH OLD PERMANENT LOGO */}
 <div style={{background:"#0A1931",padding:"10px 12px",display:"flex",justifyContent:"space-between",alignItems:"flex-start",borderBottom:"4px solid #FFD700"}}>
 <Logo/>
 <div style={{display:"flex",gap:7,flexWrap:"wrap",justifyContent:"flex-end",maxWidth:220}}>
@@ -136,88 +112,53 @@ return(
 </div>
 <div style={{background:"#e6f4ea",padding:"8px 14px",display:"flex",justifyContent:"space-between",alignItems:"center"}}><small style={{fontSize:11,color:"#155724",fontWeight:"700"}}>🇳🇬🇬🇭 Data Saver • Verified • Paystack & MoMo</small><button onClick={load} style={{padding:"6px 16px",borderRadius:20,border:"none",background:"#0A1931",color:"#FFD700",fontSize:11,fontWeight:"bold"}}>Refresh</button></div>
 
-{/* HOME - OLD PERMANENT DESIGN WITH UNLOCK + STAGE UPLOAD */}
 {tab==="home"&&<div>
 {ads.length>0&&<div style={{padding:"10px 12px 0 12px"}}><b style={{fontSize:12}}>🔥 Sponsored Ads ({ads.length})</b><div style={{display:"flex",gap:10,overflowX:"auto",marginTop:8,paddingBottom:6}}>{ads.map(ad=><a key={ad.id} href={ad.link||"#"} target="_blank" style={{minWidth:210,background:"#fff",borderRadius:12,border:"2px solid #FFD700",overflow:"hidden",textDecoration:"none",color:"#111"}}>{ad.image_url&&<img src={ad.image_url} style={{width:"100%",height:105,objectFit:"cover"}} alt="ad"/>}<div style={{padding:7}}><b style={{fontSize:11}}>{ad.company_name}</b><div style={{fontSize:10,color:"#555"}}>{ad.title}</div></div></a>)}</div></div>}
 {jobs.map(j=>{const b=getB(j.budget);const hired=hires.find(h=>h.job_id===j.id);const jobProofs=proofs[j.id]||{};return(
-<div key={j.id} style={{background:"#fff",margin:"12px",borderRadius:16,overflow:"hidden",border:"1px solid #e5e7eb",boxShadow:"0 2px 8px rgba(0,0,0,0.06)"}}>
+<div key={j.id} style={{background:"#fff",margin:"12px",borderRadius:16,overflow:"hidden",border:"1px solid #e5e7eb"}}>
 <div style={{position:"relative"}}>{j.image_url&&<img src={j.image_url} style={{width:"100%",height:200,objectFit:"cover"}} alt="job" onClick={()=>setPv(j.image_url)}/>}{hired&&<div style={{position:"absolute",top:12,left:"50%",transform:"translateX(-50%)",background:"#0A1931",color:"#FFD700",padding:"6px 16px",borderRadius:20,fontSize:11,fontWeight:"bold",border:"1px solid #FFD700"}}>Hired: {hired.artisan_name}</div>}<div style={{position:"absolute",bottom:0,left:0,right:0,background:"rgba(10,25,49,0.85)",padding:"6px 12px",display:"flex",justifyContent:"space-between"}}><small style={{color:"#FFD700",fontSize:11}}>Verified</small><small style={{color:"#FFD700",fontSize:11}}>₦{b.toLocaleString()}</small></div></div>
 <div style={{padding:"14px"}}>
-<div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><b style={{fontSize:16}}>{j.title}</b>{hired&&<span style={{background:"#22c55e",color:"#fff",padding:"4px 12px",borderRadius:20,fontSize:10,fontWeight:"bold"}}>HIRED</span>}</div>
+<div style={{display:"flex",justifyContent:"space-between"}}><b style={{fontSize:16}}>{j.title}</b>{hired&&<span style={{background:"#22c55e",color:"#fff",padding:"4px 12px",borderRadius:20,fontSize:10,fontWeight:"bold"}}>HIRED</span>}</div>
 <small>📍 {j.location} • 💰 ₦{b.toLocaleString()}</small>
 <div style={{fontSize:12,color:"#555",marginTop:4}}>{j.description}</div>
-
 <div style={{display:"flex",gap:10,marginTop:14}}>
 <button onClick={()=>{if(!user)return alert("Login");setChatJob(j);}} style={{flex:1,padding:"13px",border:"none",borderRadius:12,background:"#0A1931",color:"#FFD700",fontWeight:"bold",fontSize:13}}>💬 Chat to Hire</button>
-<button onClick={()=>{if(!user)return alert("Login first - chat to unlock contact");alert("🔓 Contact Unlocked: Client "+j.created_by+" - Chat to Hire to see phone");}} style={{flex:1,padding:"13px",border:"none",borderRadius:12,background:"#FFD700",color:"#0A1931",fontWeight:"bold",fontSize:13}}>Unlock Contact</button>
+<button onClick={()=>{if(!user)return alert("Login first");alert("🔓 Contact Unlocked: "+j.created_by);}} style={{flex:1,padding:"13px",border:"none",borderRadius:12,background:"#FFD700",color:"#0A1931",fontWeight:"bold",fontSize:13}}>Unlock Contact</button>
 </div>
-
-{/* STAGE BY STAGE UPLOAD - OLD PERMANENT */}
 <div style={{marginTop:14,padding:"12px",border:"2px dashed #FFD700",borderRadius:12,background:"#fffbe6"}}>
 <b style={{fontSize:11}}>ARTISAN UPLOAD PROOF 35% 75% 100% (NEW):</b>
 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginTop:10}}>
 {[35,75,100].map(stage=>{
 const hasProof=jobProofs[stage];
-return(
-<div key={stage} style={{background:"#fff",borderRadius:10,border:"1px solid #0A1931",padding:"8px",textAlign:"center"}}>
-<div style={{fontSize:11,fontWeight:"bold",marginBottom:6}}>{stage}%</div>
-{hasProof&&<img src={hasProof} style={{width:"100%",height:45,objectFit:"cover",borderRadius:6,marginBottom:6}} alt="proof"/>}
-<label style={{display:"block",background:hasProof?"#22c55e":"#f3f4f6",padding:"6px",borderRadius:6,fontSize:10,cursor:"pointer"}}>
-{hasProof?"✅ Uploaded":"📸 Upload Proof"}
-<input type="file" accept="image/*" style={{display:"none"}} onChange={e=>upProof(j.id,stage,e)}/>
-</label>
-<button onClick={()=>openPay(j,stage)} style={{width:"100%",marginTop:6,padding:"8px",background:"#0A1931",color:"#FFD700",border:"none",borderRadius:8,fontSize:11,fontWeight:"bold"}}>Pay {stage}%</button>
-</div>
-);
+return(<div key={stage} style={{background:"#fff",borderRadius:10,border:"1px solid #0A1931",padding:"8px",textAlign:"center"}}><div style={{fontSize:11,fontWeight:"bold",marginBottom:6}}>{stage}%</div>{hasProof&&<img src={hasProof} style={{width:"100%",height:45,objectFit:"cover",borderRadius:6,marginBottom:6}} alt="proof"/>}<label style={{display:"block",background:hasProof?"#22c55e":"#f3f4f6",padding:"6px",borderRadius:6,fontSize:10,cursor:"pointer"}}>{hasProof?"✅ Uploaded":"📸 Upload Proof"}<input type="file" accept="image/*" style={{display:"none"}} onChange={e=>upProof(j.id,stage,e)}/></label><button onClick={()=>openPay(j,stage)} style={{width:"100%",marginTop:6,padding:"8px",background:"#0A1931",color:"#FFD700",border:"none",borderRadius:8,fontSize:11,fontWeight:"bold"}}>Pay {stage}%</button></div>);
 })}
 </div>
-<small style={{fontSize:9,color:"#666",marginTop:6,display:"block"}}>Escrow secured — 7% charge added at payment, 3% maintenance deducted on payout — auto to Opay/MoMo/Bank</small>
+<small style={{fontSize:9,color:"#666",marginTop:6,display:"block"}}>Escrow secured — charges applied at checkout — auto to Opay/MoMo/Bank</small>
 </div>
 </div>
 </div>
 );})}
 </div>}
 
-{tab==="artisans"&&<div style={{padding:"12px"}}><h3 style={{margin:"8px 0"}}>• Portfolio — 3% Fee Only!</h3>{arts.map(a=>{const w=parseW(a.works);return(<div key={a.id} style={{background:"#fff",borderRadius:14,marginBottom:"10px",padding:"14px",border:"1px solid #e5e7eb",borderLeft:"4px solid #FFD700"}}><div style={{display:"flex",justifyContent:"space-between"}}><div><b style={{fontSize:15}}>{a.name}</b><div style={{display:"flex",gap:6,marginTop:6}}><span>⭐⭐⭐⭐⭐</span><small>{a.rating||4.9} • {a.jobs_done||1} jobs</small></div><small style={{display:"block",marginTop:4}}>📍 {a.location} • 💳 {a.payout_method||"Bank"} {a.account_number? "• "+a.account_number.slice(-4):""}</small></div><div style={{display:"flex",flexDirection:"column",gap:6}}><span style={{background:"#0A1931",color:"#FFD700",padding:"4px 10px",borderRadius:12,fontSize:10,fontWeight:"bold"}}>{a.skill}</span><button onClick={()=>setSelArt(a)} style={{padding:"8px 18px",borderRadius:10,border:"none",background:"#0A1931",color:"#FFD700",fontWeight:"bold",fontSize:12}}>View</button></div></div>{w.length>0&&<div style={{display:"flex",gap:6,marginTop:10}}>{w.slice(0,2).map((x,i)=><img key={i} src={x} style={{width:"80px",height:"60px",borderRadius:8,objectFit:"cover",border:"1px solid #FFD700"}} alt="work"/>)}</div>);})}<button onClick={()=>setTab("join")} style={{width:"100%",marginTop:14,padding:"14px",borderRadius:12,border:"none",background:"#FFD700",color:"#0A1931",fontWeight:"bold"}}>+ Join as Artisan - 3% Fee Only!</button></div>}
+{tab==="artisans"&&<div style={{padding:"12px"}}><h3 style={{margin:"8px 0"}}>• Portfolio — 3% Fee Only!</h3>{arts.map(a=>{const w=parseW(a.works);return(<div key={a.id} style={{background:"#fff",borderRadius:14,marginBottom:"10px",padding:"14px",border:"1px solid #e5e7eb",borderLeft:"4px solid #FFD700"}}><div style={{display:"flex",justifyContent:"space-between"}}><div><b style={{fontSize:15}}>{a.name}</b><div style={{display:"flex",gap:6,marginTop:6}}><span>⭐⭐⭐⭐⭐</span><small>{a.rating||4.9} • {a.jobs_done||1} jobs</small></div><small style={{display:"block",marginTop:4}}>📍 {a.location} • 💳 {a.payout_method||"Bank"}</small></div><div style={{display:"flex",flexDirection:"column",gap:6}}><span style={{background:"#0A1931",color:"#FFD700",padding:"4px 10px",borderRadius:12,fontSize:10,fontWeight:"bold"}}>{a.skill}</span><button onClick={()=>setSelArt(a)} style={{padding:"8px 18px",borderRadius:10,border:"none",background:"#0A1931",color:"#FFD700",fontWeight:"bold",fontSize:12}}>View</button></div></div>{w.length>0&&<div style={{display:"flex",gap:6,marginTop:10}}>{w.slice(0,2).map((x,i)=><img key={i} src={x} style={{width:"80px",height:"60px",borderRadius:8,objectFit:"cover",border:"1px solid #FFD700"}} alt="work"/>)}</div></div>);})}<button onClick={()=>setTab("join")} style={{width:"100%",marginTop:14,padding:"14px",borderRadius:12,border:"none",background:"#FFD700",color:"#0A1931",fontWeight:"bold"}}>+ Join as Artisan</button></div>}
 
 {tab==="admin"&&<div style={{padding:"16px"}}>
-{!isAdmin?<div style={{background:"#fff",padding:20,borderRadius:16,textAlign:"center",border:"2px solid #ef4444"}}><h3>🔒 Admin Only</h3><p>Login as nicholasu9@gmail.com</p><p style={{fontSize:12,color:"#666"}}>Current: {user?.email||"Not logged"}</p><button onClick={()=>setTab("login")} style={{padding:"10px 20px",background:"#0A1931",color:"#FFD700",border:"none",borderRadius:10,fontWeight:"bold"}}>Login</button></div>:
-<div><h2 style={{color:"#0A1931",fontSize:18}}>Admin — NG & GH — 3%+7%=10%</h2>
+{!isAdmin?<div style={{background:"#fff",padding:20,borderRadius:16,textAlign:"center",border:"2px solid #ef4444"}}><h3>🔒 Admin Only</h3><p>Login as nicholasu9@gmail.com</p><button onClick={()=>setTab("login")} style={{padding:"10px 20px",background:"#0A1931",color:"#FFD700",border:"none",borderRadius:10,fontWeight:"bold"}}>Login</button></div>:
+<div><h2 style={{color:"#0A1931",fontSize:18}}>Admin — 3%+7%=10%</h2>
 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginTop:12}}>
 <div style={{background:"#0A1931",padding:"16px",borderRadius:16,border:"2px solid #FFD700"}}><small style={{color:"#FFD700"}}>Jobs</small><h1 style={{color:"#FFD700"}}>{jobs.length}</h1></div>
-<div style={{background:"#fff",padding:"16px",borderRadius:16,border:"1px solid #ddd"}}><small>Artisans (Opay/MoMo)</small><h1>{arts.length}</h1></div>
-<div style={{background:"#FFD700",padding:"16px",borderRadius:16}}><small>Client 7% Fee</small><h1 style={{fontSize:20}}>₦{c7Total.toLocaleString()}</h1></div>
-<div style={{background:"#0A1931",padding:"16px",borderRadius:16}}><small style={{color:"#FFD700"}}>Artisan 3% Fee</small><h1 style={{color:"#fff",fontSize:20}}>₦{a3Total.toLocaleString()}</h1></div>
-<div style={{background:"#fff",padding:"16px",borderRadius:16,border:"2px solid #FFD700"}}><small>Ads Revenue</small><h1 style={{fontSize:20}}>₦{adTotal.toLocaleString()}</h1><small>{ads.length} ads</small></div>
-<div style={{background:"#0A1931",padding:"16px",borderRadius:16,border:"2px solid #FFD700"}}><small style={{color:"#FFD700"}}>GRAND 10%</small><h1 style={{color:"#FFD700"}}>₦{grand.toLocaleString()}</h1></div>
+<div style={{background:"#fff",padding:"16px",borderRadius:16,border:"1px solid #ddd"}}><small>Artisans</small><h1>{arts.length}</h1></div>
+<div style={{background:"#FFD700",padding:"16px",borderRadius:16}}><small>Client 7%</small><h1 style={{fontSize:20}}>₦{c7Total.toLocaleString()}</h1></div>
+<div style={{background:"#0A1931",padding:"16px",borderRadius:16}}><small style={{color:"#FFD700"}}>Artisan 3%</small><h1 style={{color:"#fff",fontSize:20}}>₦{a3Total.toLocaleString()}</h1></div>
+<div style={{background:"#fff",padding:"16px",borderRadius:16,border:"2px solid #FFD700"}}><small>Ads</small><h1>₦{adTotal.toLocaleString()}</h1></div>
+<div style={{background:"#0A1931",padding:"16px",borderRadius:16,border:"2px solid #FFD700"}}><small style={{color:"#FFD700"}}>GRAND</small><h1 style={{color:"#FFD700"}}>₦{grand.toLocaleString()}</h1></div>
 </div>
-
-{/* ADMIN CHAT MONITORING - NEW */}
 <div style={{background:"#fff",marginTop:16,padding:14,borderRadius:14,border:"2px solid #0A1931"}}>
-<b style={{fontSize:14}}>🔍 Live Chat Monitoring — {msgs.length} messages</b>
-<div style={{fontSize:10,color:"#666",marginBottom:8}}>Monitor all client-artisan negotiations — Prevent phone number sharing outside escrow</div>
-<div style={{maxHeight:300,overflowY:"auto",border:"1px solid #eee",borderRadius:10,padding:8,background:"#f9fafb"}}>
-{msgs.length===0?<small>No chats yet</small>:
-msgs.slice(-30).reverse().map(m=>{
-const job = jobs.find(j=>j.id===m.job_id);
-return(
-<div key={m.id} style={{padding:"8px",borderBottom:"1px solid #eee",fontSize:11}}>
-<div style={{display:"flex",justifyContent:"space-between"}}><b style={{color:"#0A1931"}}>{m.sender?.slice(0,15)} → Job #{m.job_id}</b><small style={{color:"#999"}}>{new Date(m.created_at||Date.now()).toLocaleTimeString()}</small></div>
-<div style={{marginTop:4,background:m.message?.match(/\d{3}.*\d{3}/)?"#fee2e2":"#fff",padding:"6px",borderRadius:6,border:m.message?.match(/\d{3}.*\d{3}/)?"1px solid red":"1px solid #e5e7eb"}}>
-{m.message} {m.message?.match(/\d{3}.*\d{3}/)&&<span style={{color:"red",fontWeight:"bold"}}> ⚠️ Phone detected!</span>}
-</div>
-<small style={{color:"#666"}}>Job: {job?.title||"Unknown"} — {job?.location||""}</small>
-</div>
-);
-})}
-</div>
-<div style={{display:"flex",gap:8,marginTop:10}}>
-<button onClick={()=>{if(confirm("Delete all chats?")){supa.from("messages").delete().neq("id",0).then(()=>load())}}} style={{padding:"8px 12px",background:"#ef4444",color:"#fff",border:"none",borderRadius:8,fontSize:11,fontWeight:"bold"}}>Clear Chats</button>
-<button onClick={load} style={{padding:"8px 12px",background:"#0A1931",color:"#FFD700",border:"none",borderRadius:8,fontSize:11,fontWeight:"bold"}}>Refresh Chats</button>
+<b style={{fontSize:14}}>🔍 Live Chat Monitoring — {msgs.length} msgs</b>
+<div style={{maxHeight:300,overflowY:"auto",border:"1px solid #eee",borderRadius:10,padding:8,background:"#f9fafb",marginTop:8}}>
+{msgs.slice(-30).reverse().map(m=><div key={m.id} style={{padding:"8px",borderBottom:"1px solid #eee",fontSize:11}}><b>{m.sender?.slice(0,20)} → Job #{m.job_id}</b><div style={{marginTop:4,background:m.message?.match(/\d{3}.*\d{3}/)?"#fee2e2":"#fff",padding:"6px",borderRadius:6}}>{m.message} {m.message?.match(/\d{3}.*\d{3}/)&&<span style={{color:"red",fontWeight:"bold"}}> ⚠️ Phone!</span>}</div></div>)}
 </div>
 </div>
-
-<div style={{background:"#fff",marginTop:16,padding:14,borderRadius:14}}><b>Recent Ads (will show on Home)</b>{ads.map(ad=><div key={ad.id} style={{display:"flex",gap:10,padding:"8px 0",borderBottom:"1px solid #eee",alignItems:"center"}}><img src={ad.image_url} style={{width:50,height:40,objectFit:"cover",borderRadius:6}} alt="ad"/><div><b style={{fontSize:12}}>{ad.company_name}</b><div style={{fontSize:11}}>{ad.title} - ₦{(ad.amount||0).toLocaleString()}</div></div></div>)}</div>
 </div>}
 </div>}
 
@@ -230,13 +171,13 @@ return(
 {verM==="phone"?<div style={{display:"flex",gap:6}}><input value={awhat} onChange={e=>setAwhat(e.target.value)} placeholder="080..." style={{flex:1,padding:10,borderRadius:8,border:"1px solid #ddd"}}/><button onClick={sendPhoneOtp} style={{padding:10,background:"#0A1931",color:"#FFD700",border:"none",borderRadius:8,fontWeight:"bold"}}>Send</button></div>:<><input value={verE} onChange={e=>setVerE(e.target.value)} placeholder="email" style={{width:"100%",padding:10,borderRadius:8,border:"1px solid #ddd"}}/><button onClick={sendEmailOtp} style={{marginTop:6,padding:8,background:"#0A1931",color:"#FFD700",border:"none",borderRadius:8,fontWeight:"bold"}}>Send Code</button></>}
 <div style={{display:"flex",gap:6,marginTop:8}}><input value={otpI} onChange={e=>setOtpI(e.target.value)} placeholder="6-digit" style={{flex:1,padding:10,borderRadius:8,border:"1px solid #ddd"}}/><button onClick={verM==="phone"?verifyPhoneOtp:verifyEmailOtp} style={{padding:10,background:(pVer||eVer)?"#22c55e":"#FFD700",border:"none",borderRadius:8,fontWeight:"bold"}}>{(pVer||eVer)?"Verified ✅":"Verify"}</button></div>
 </div>
-<div style={{background:"#fffbe6",padding:10,borderRadius:10,marginTop:8,border:"2px solid #FFD700"}}>
+<div style={{background:"#fffbe6",padding:10,borderRadius:10,border:"2px solid #FFD700"}}>
 <b style={{fontSize:12}}>💳 Payout — Auto to Opay/Palmpay/MoMo/Bank</b>
 <select value={payoutMethod} onChange={e=>setPayoutMethod(e.target.value)} style={{width:"100%",padding:10,marginTop:8,borderRadius:8,border:"1px solid #0A1931"}}>
 <option>Bank Account</option><option>Opay</option><option>Palmpay</option><option>Moniepoint</option><option>MTN MoMo Ghana</option><option>Vodafone Cash</option><option>AirtelTigo Money</option><option>MTN MoMo Nigeria</option>
 </select>
 <select value={bankName} onChange={e=>setBankName(e.target.value)} style={{width:"100%",padding:10,marginTop:6,borderRadius:8,border:"1px solid #ddd"}}>
-<option>GTBank</option><option>Access Bank</option><option>First Bank</option><option>UBA</option><option>Zenith Bank</option><option>Opay - 999992</option><option>Palmpay - 999991</option><option>Moniepoint - 50515</option>
+<option>GTBank</option><option>Access Bank</option><option>First Bank</option><option>UBA</option><option>Zenith Bank</option><option>Opay - 999992</option><option>Palmpay - 999991</option>
 </select>
 <div style={{display:"flex",gap:6,marginTop:6}}><input value={accNum} onChange={e=>setAccNum(e.target.value)} placeholder="Account / MoMo Number" style={{flex:1,padding:10,borderRadius:8,border:"1px solid #ddd"}}/><button onClick={verifyAcc} style={{padding:10,background:"#0A1931",color:"#FFD700",border:"none",borderRadius:8,fontWeight:"bold"}}>Verify</button></div>
 {accName&&<small style={{color:"green",fontWeight:"bold"}}>{accName}</small>}
@@ -244,7 +185,7 @@ return(
 <input type="file" accept="image/*" onChange={upArt} style={{marginTop:8}}/>
 <input type="file" accept="image/*" multiple onChange={upWorks} style={{marginTop:6}}/>
 <div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:8}}>{aworks.map((w,i)=><img key={i} src={w} style={{width:50,height:50,borderRadius:8,border:"2px solid #FFD700"}} alt="w"/>)}</div>
-<button onClick={postArt} style={{width:"100%",marginTop:12,padding:12,background:(pVer||eVer)&&accNum?"#0A1931":"#999",color:"#FFD700",border:"none",borderRadius:10,fontWeight:"bold"}}>Create Artisan — Auto to {payoutMethod}</button>
+<button onClick={postArt} style={{width:"100%",marginTop:12,padding:12,background:(pVer||eVer)&&accNum?"#0A1931":"#999",color:"#FFD700",border:"none",borderRadius:10,fontWeight:"bold"}}>Create Artisan</button>
 </div></div>}
 
 {tab==="post"&&<div style={{padding:"14px"}}><h3>Post a Job</h3><div style={{background:"#fff",padding:"14px",borderRadius:14,border:"1px solid #e5e7eb"}}><input value={jt} onChange={e=>setJt(e.target.value)} placeholder="Job Title" style={{width:"100%",padding:10,marginBottom:8,borderRadius:8,border:"1px solid #ddd"}}/><input value={jl} onChange={e=>setJl(e.target.value)} placeholder="Location" style={{width:"100%",padding:10,marginBottom:8,borderRadius:8,border:"1px solid #ddd"}}/><input value={jb} onChange={e=>setJb(e.target.value)} placeholder="Budget e.g. 400000" style={{width:"100%",padding:10,marginBottom:8,borderRadius:8,border:"1px solid #ddd"}}/><textarea value={jd} onChange={e=>setJd(e.target.value)} placeholder="Description" style={{width:"100%",padding:10,marginBottom:8,borderRadius:8,border:"1px solid #ddd"}}/><input type="file" accept="image/*" onChange={up} style={{marginBottom:8}}/>{ji&&<img src={ji} style={{width:"100%",maxHeight:150,borderRadius:12,marginBottom:8}} alt="prev"/>}<button onClick={postJob} style={{width:"100%",padding:12,background:"#0A1931",color:"#FFD700",border:"none",borderRadius:10,fontWeight:"bold"}}>Post Job</button></div></div>}
@@ -253,14 +194,4 @@ return(
 
 {tab==="login"&&<div style={{padding:"24px",display:"flex",justifyContent:"center"}}><div style={{background:"#fff",padding:"18px",borderRadius:16,width:"100%",maxWidth:"360px",border:"2px solid #0A1931"}}><b>Login</b><input value={email} onChange={e=>setEmail(e.target.value)} placeholder="Email" style={{width:"100%",padding:10,marginTop:10,borderRadius:8,border:"1px solid #ddd"}}/><input type="password" value={pass} onChange={e=>setPass(e.target.value)} placeholder="Password" style={{width:"100%",padding:10,marginTop:8,borderRadius:8,border:"1px solid #ddd"}}/><button onClick={async()=>{const {error}=await supa.auth.signInWithPassword({email,password:pass});if(error)return alert(error.message);const u={email,role:email===ADMIN?"admin":"user"};localStorage.setItem("cs_user",JSON.stringify(u));setUser(u);setTab("home");}} style={{width:"100%",padding:12,background:"#0A1931",color:"#FFD700",border:"none",borderRadius:10,fontWeight:"bold",marginTop:10}}>Login</button><button onClick={async()=>{const {error}=await supa.auth.signUp({email,password:pass});if(error)return alert(error.message);const u={email,role:email===ADMIN?"admin":"user"};localStorage.setItem("cs_user",JSON.stringify(u));setUser(u);setTab("home");}} style={{width:"100%",padding:12,background:"#fff",color:"#0A1931",border:"1.5px solid #0A1931",borderRadius:10,fontWeight:"bold",marginTop:8}}>Create Account</button></div></div>}
 
-{selArt&&<div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"#fff",zIndex:70,overflowY:"auto"}}><div style={{background:"#0A1931",color:"#fff",padding:"12px",display:"flex",justifyContent:"space-between",alignItems:"center",borderBottom:"3px solid #FFD700"}}><div style={{display:"flex",alignItems:"center",gap:10}}><img src={selArt.portfolio} style={{width:42,height:42,borderRadius:"50%",border:"2px solid #FFD700"}} alt="art"/><div><b style={{color:"#FFD700"}}>{selArt.name}</b><div style={{fontSize:10,color:"#ccc"}}>{selArt.skill} • {selArt.location}</div></div></div><button onClick={()=>setSelArt(null)} style={{background:"#fff",border:"none",borderRadius:"50%",width:32,height:32}}>X</button></div><div style={{padding:"14px"}}><div style={{marginTop:14}}><b>Jobs Done ({parseW(selArt.works).length})</b><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginTop:8,border:"2px solid #FFD700",borderRadius:12,padding:8,background:"#fffbe6"}}>{parseW(selArt.works).map((w,i)=><img key={i} src={w} onClick={()=>setPv(w)} style={{width:"100%",height:110,objectFit:"cover",borderRadius:10,border:"1px solid #FFD700"}} alt="work"/>)}</div></div><div style={{display:"flex",gap:8,marginTop:16}}><button onClick={()=>setSelArt(null)} style={{flex:1,padding:13,background:"#fff",color:"#0A1931",border:"1.5px solid #0A1931",borderRadius:12,fontWeight:"bold"}}>Close</button><button onClick={()=>hireArtisan(selArt.created_by||selArt.whatsapp,selArt.name)} style={{flex:1,padding:13,background:"#FFD700",color:"#0A1931",border:"none",borderRadius:12,fontWeight:"bold"}}>Hire {selArt.name.split(" ")[0]}</button></div></div></div>}
-
-{chatJob&&<div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"#f5f7fb",zIndex:50,display:"flex",flexDirection:"column"}}><div style={{background:"#0A1931",color:"#fff",padding:"12px",display:"flex",justifyContent:"space-between",borderBottom:"3px solid #FFD700"}}><div><b style={{color:"#FFD700"}}>Chat: {chatJob.title}</b><div style={{fontSize:9,color:"#ccc"}}>Monitored • Escrow Secured</div></div><button onClick={()=>setChatJob(null)} style={{background:"#fff",border:"none",borderRadius:"50%",width:32,height:32}}>X</button></div><div style={{flex:1,overflowY:"auto",padding:"12px"}}>{msgs.filter(m=>m.job_id===chatJob.id).map(m=><div key={m.id} style={{background:m.sender===user?.email?"#0A1931":"#fff",color:m.sender===user?.email?"#FFD700":"#111",padding:"9px 12px",borderRadius:14,margin:"7px 0",maxWidth:"84%",marginLeft:m.sender===user?.email?"auto":"0",fontSize:12,border:"1px solid #e5e7eb"}}>{m.message}</div>)}<div ref={chatEndRef}></div></div><div style={{padding:"12px",background:"#fff",display:"flex",gap:"8px",borderTop:"1px solid #e5e7eb"}}><input value={chatTxt} onChange={e=>setChatTxt(e.target.value)} placeholder="Negotiate..." style={{flex:1,padding:"12px",borderRadius:24,border:"1px solid #ddd"}}/><button onClick={async()=>{if(!chatTxt.trim()||!chatJob)return;await supa.from("messages").insert([{job_id:chatJob.id,sender:user.email,receiver:"all",message:chatTxt}]);setChatTxt("");load();}} style={{padding:"11px 18px",background:"#0A1931",color:"#FFD700",border:"none",borderRadius:24,fontWeight:"bold"}}>Send</button></div></div>}
-
-{payM&&<div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(10,25,49,0.65)",zIndex:60,display:"flex",alignItems:"center",justifyContent:"center",padding:"16px"}}><div style={{background:"#fff",borderRadius:16,width:"100%",maxWidth:"360px",overflow:"hidden",border:"2px solid #0A1931"}}><div style={{background:"#0A1931",color:"#fff",padding:"14px",borderBottom:"3px solid #FFD700"}}><b style={{color:"#FFD700"}}>Pay {payM.sl} — Secured Escrow</b><div style={{fontSize:10,color:"#ccc",marginTop:4}}>Charges applied at checkout</div></div><div style={{padding:"16px"}}><h2 style={{color:"#0A1931"}}>₦{payM.sa.toLocaleString()}</h2><small>Includes service charge — Artisan receives ₦{payM.ag.toLocaleString()} after approval — Auto to Opay/MoMo/Bank</small><button onClick={payNow} style={{width:"100%",marginTop:14,padding:13,background:"#0A1931",color:"#FFD700",border:"none",borderRadius:12,fontWeight:"bold"}}>Pay Securely — Escrow Hold</button><button onClick={()=>setPayM(null)} style={{width:"100%",marginTop:9,padding:11,background:"#fff",border:"1px solid #ddd",borderRadius:12}}>Cancel</button></div></div></div>}
-
-{pv&&<div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.96)",zIndex:100,display:"flex",flexDirection:"column"}}><div style={{display:"flex",justifyContent:"space-between",padding:"12px",color:"#fff"}}><b style={{color:"#FFD700"}}>Proof Protected</b><button onClick={()=>setPv(null)} style={{background:"#fff",border:"none",borderRadius:"50%",width:32,height:32}}>X</button></div><div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center"}}><img src={pv} style={{maxWidth:"95%",maxHeight:"80vh",borderRadius:12,border:"3px solid #FFD700"}} alt="full"/></div></div>}
-
-</div>
-);
-  }
+{selArt&&<div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"#fff",zIndex:70,overflowY:"auto"}}><div
