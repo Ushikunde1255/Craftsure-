@@ -27,6 +27,7 @@ const [adL,setAdL]=useState(""); const [adP,setAdP]=useState("Basic");
 const [selArt,setSelArt]=useState(null);
 const [payoutMethod,setPayoutMethod]=useState("Bank Account");
 const [bankName,setBankName]=useState("GTBank");
+const [proofs,setProofs]=useState({});
 const [accNum,setAccNum]=useState(""); const [accName,setAccName]=useState("");
 const chatEndRef=useRef(null);
 
@@ -65,6 +66,7 @@ const up=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.o
 const upArt=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{compress(ev.target.result,300,0.4).then(c=>setAport(c));};r.readAsDataURL(f);};
 const upWorks=e=>{const files=Array.from(e.target.files).slice(0,5);files.forEach(f=>{const r=new FileReader();r.onload=ev=>{compress(ev.target.result,500,0.4).then(c=>setAworks(p=>[...p,c].slice(0,5)));};r.readAsDataURL(f);});};
 const upAd=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{compress(ev.target.result,600,0.5).then(c=>setAdImg(c));};r.readAsDataURL(f);};
+const upProof=(jobId,stage,e)=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{const i=new Image();i.onload=()=>{const c=document.createElement("canvas");let w=i.width,h=i.height;if(w>700){h=h*700/w;w=700;}c.width=w;c.height=h;c.getContext("2d").drawImage(i,0,0,w,h);const comp=c.toDataURL("image/jpeg",0.5);setProofs(p=>({...p,[jobId]:{...p[jobId],[stage]:comp}}));};i.src=ev.target.result;};r.readAsDataURL(f);};
 
 const sendPhoneOtp=()=>{if(awhat.length<10)return alert("Enter phone");const c=Math.floor(100000+Math.random()*900000).toString();setOtpS(c);alert("OTP Code: "+c+" (Demo - in live will SMS)");};
 const verifyPhoneOtp=()=>{if(otpI===otpS){setPVer(true);setVerM("phone");alert("Phone Verified ✅");}else alert("Wrong code");};
@@ -112,8 +114,49 @@ return(
 {tab==="home"&&<div>
 {/* ADS DISPLAY ON HOME */}
 {ads.length>0&&<div style={{padding:"12px 12px 0 12px"}}><b style={{fontSize:13}}>🔥 Sponsored Ads ({ads.length})</b><div style={{display:"flex",gap:10,overflowX:"auto",marginTop:8,paddingBottom:6}}>{ads.map(ad=><a key={ad.id} href={ad.link||"#"} target="_blank" style={{minWidth:220,background:"#fff",borderRadius:12,border:"2px solid #FFD700",overflow:"hidden",textDecoration:"none",color:"#111"}}>{ad.image_url&&<img src={ad.image_url} style={{width:"100%",height:110,objectFit:"cover"}} alt="ad"/>}<div style={{padding:8}}><b style={{fontSize:12}}>{ad.company_name}</b><div style={{fontSize:11,color:"#555"}}>{ad.title} • {ad.package} • ₦{(ad.amount||0).toLocaleString()}</div></div></a>)}</div></div>}
-{jobs.map(j=>{const b=getB(j.budget);const hired=hires.find(h=>h.job_id===j.id);return(<div key={j.id} style={{background:"#fff",margin:"12px",borderRadius:14,overflow:"hidden",border:"1px solid #e5e7eb"}}><div style={{position:"relative"}}>{j.image_url&&<img src={j.image_url} style={{width:"100%",height:190,objectFit:"cover"}} alt="job" onClick={()=>setPv(j.image_url)}/>}{hired&&<div style={{position:"absolute",top:12,left:"50%",transform:"translateX(-50%)",background:"#0A1931",color:"#FFD700",padding:"6px 16px",borderRadius:20,fontSize:11,fontWeight:"bold",border:"1px solid #FFD700"}}>Hired: {hired.artisan_name}</div>}</div><div style={{padding:"12px"}}><div style={{display:"flex",justifyContent:"space-between"}}><b style={{fontSize:15}}>{j.title}</b>{hired&&<span style={{background:"#22c55e",color:"#fff",padding:"4px 12px",borderRadius:20,fontSize:10,fontWeight:"bold"}}>HIRED</span>}</div><small>📍 {j.location} • 💰 ₦{b.toLocaleString()} +7% = ₦{(b+Math.floor(b*0.07)).toLocaleString()}</small><div style={{fontSize:12,color:"#555",marginTop:4}}>{j.description}</div><div style={{display:"flex",gap:8,marginTop:12}}><button onClick={()=>{if(!user)return alert("Login");setChatJob(j);}} style={{flex:1,padding:"11px",border:"none",borderRadius:10,background:"#0A1931",color:"#FFD700",fontWeight:"bold",fontSize:12}}>💬 Chat to Hire</button><button onClick={()=>openPay(j,35)} style={{flex:1,padding:"11px",border:"none",borderRadius:10,background:"#FFD700",color:"#0A1931",fontWeight:"bold",fontSize:12}}>Pay 35% +7%</button></div></div></div>);})}
-</div>}
+{jobs.map(j=>{
+const b=getB(j.budget);
+const hired=hires.find(h=>h.job_id==j.id);
+const jobProofs=proofs[j.id]||{};
+return(
+<div key={j.id} style={{background:"#fff",margin:"12px",borderRadius:16,overflow:"hidden",border:"1px solid #e5e7eb",boxShadow:"0 2px 10px rgba(0,0,0,0.06)"}}>
+<div style={{position:"relative"}}>
+{j.image_url&&<img src={j.image_url} style={{width:"100%",height:210,objectFit:"cover"}} alt="job" onClick={()=>setPv(j.image_url)}/>}
+{hired&&<div style={{position:"absolute",top:12,left:"50%",transform:"translateX(-50%)",background:"#0A1931",color:"#FFD700",padding:"6px 16px",borderRadius:20,fontSize:11,fontWeight:"bold",border:"1px solid #FFD700"}}>Hired: {hired.artisan_name}</div>}
+<div style={{position:"absolute",bottom:0,left:0,right:0,background:"rgba(10,25,49,0.88)",padding:"7px 12px",display:"flex",justifyContent:"space-between"}}>
+<small style={{color:"#FFD700",fontSize:11,fontWeight:"bold"}}>Verified</small>
+<small style={{color:"#FFD700",fontSize:11,fontWeight:"bold"}}>N{b.toLocaleString()}</small>
+</div>
+</div>
+<div style={{padding:"14px"}}>
+<div style={{display:"flex",justifyContent:"space-between"}}><b style={{fontSize:16}}>{j.title}</b>{hired&&<span style={{background:"#22c55e",color:"#fff",padding:"4px 12px",borderRadius:20,fontSize:10,fontWeight:"bold"}}>HIRED</span>}</div>
+<small style={{color:"#666"}}>{j.location} - N{b.toLocaleString()}</small>
+<div style={{fontSize:12,color:"#555",marginTop:6}}>{j.description}</div>
+<div style={{display:"flex",gap:10,marginTop:14}}>
+<button onClick={()=>{if(!user)return alert("Login");setChatJob(j);}} style={{flex:1,padding:"13px",border:"none",borderRadius:12,background:"#0A1931",color:"#FFD700",fontWeight:"bold",fontSize:13}}>Chat to Hire</button>
+<button onClick={()=>{if(!user)return alert("Login first");alert("Contact Unlocked: "+j.created_by);}} style={{flex:1,padding:"13px",border:"none",borderRadius:12,background:"#FFD700",color:"#0A1931",fontWeight:"bold",fontSize:13}}>Unlock Contact</button>
+</div>
+<div style={{marginTop:14,padding:"12px",border:"2px dashed #FFD700",borderRadius:12,background:"#fffbe6"}}>
+<b style={{fontSize:11}}>ARTISAN UPLOAD PROOF 35% 75% 100% (NEW):</b>
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginTop:10}}>
+{[35,75,100].map(stage=>{
+const hasProof=jobProofs[stage];
+return(
+<div key={stage} style={{background:"#fff",borderRadius:10,border:"1px solid #0A1931",padding:"8px",textAlign:"center"}}>
+<div style={{fontSize:11,fontWeight:"bold",marginBottom:6}}>{stage}%</div>
+{hasProof&&<img src={hasProof} style={{width:"100%",height:48,objectFit:"cover",borderRadius:6,marginBottom:6}} alt="proof"/>}
+<label style={{display:"block",background:hasProof?"#22c55e":"#f3f4f6",padding:"6px",borderRadius:6,fontSize:10,cursor:"pointer",fontWeight:"bold",color:hasProof?"#fff":"#111"}}>{hasProof?"Uploaded":"Upload Proof"}<input type="file" accept="image/*" style={{display:"none"}} onChange={e=>upProof(j.id,stage,e)}/></label>
+<button onClick={()=>openPay(j,stage)} style={{width:"100%",marginTop:6,padding:"8px",background:"#0A1931",color:"#FFD700",border:"none",borderRadius:8,fontSize:11,fontWeight:"bold"}}>Pay {stage}%</button>
+</div>
+);
+})}
+</div>
+<small style={{fontSize:9,color:"#666",marginTop:8,display:"block"}}>Escrow secured - charges applied at checkout - auto to Opay/MoMo/Bank</small>
+</div>
+</div>
+</div>
+);
+})}
 
 {tab==="artisans"&&<div style={{padding:"12px"}}><h3 style={{margin:"8px 0"}}>• Portfolio — 3% Fee Only!</h3>{arts.map(a=>{const w=parseW(a.works);return(<div key={a.id} style={{background:"#fff",borderRadius:14,marginBottom:"10px",padding:"14px",border:"1px solid #e5e7eb",borderLeft:"4px solid #FFD700"}}><div style={{display:"flex",justifyContent:"space-between"}}><div><b style={{fontSize:16}}>{a.name}</b><div style={{display:"flex",gap:6,marginTop:6}}><span>⭐⭐⭐⭐⭐</span><small>{a.rating||4.9} • {a.jobs_done||1} jobs</small></div><small style={{display:"block",marginTop:4}}>📍 {a.location} • 💳 {a.payout_method||a.bank_name||"Bank"} {a.account_number||""}</small></div><div style={{display:"flex",flexDirection:"column",gap:6}}><span style={{background:"#0A1931",color:"#FFD700",padding:"4px 10px",borderRadius:12,fontSize:10,fontWeight:"bold"}}>{a.skill}</span><button onClick={()=>setSelArt(a)} style={{padding:"8px 18px",borderRadius:10,border:"none",background:"#0A1931",color:"#FFD700",fontWeight:"bold",fontSize:12}}>View</button></div></div>{w.length>0&&<div style={{display:"flex",gap:6,marginTop:10}}>{w.slice(0,2).map((x,i)=><img key={i} src={x} style={{width:"80px",height:"60px",borderRadius:8,objectFit:"cover",border:"1px solid #FFD700"}} alt="work"/>)}</div>}</div>);})}<button onClick={()=>setTab("join")} style={{width:"100%",marginTop:14,padding:"14px",borderRadius:12,border:"none",background:"#FFD700",color:"#0A1931",fontWeight:"bold"}}>+ Join as Artisan - 3% Fee Only!</button></div>}
 
