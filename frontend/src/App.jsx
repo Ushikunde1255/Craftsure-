@@ -117,27 +117,8 @@ else if(stage===75){sa=Math.floor(ct*0.40);ag=Math.floor(at*0.40);sl="40% Progre
 else{sa=Math.floor(ct*0.25);ag=Math.floor(at*0.25);sl="25% Final";}
 setPayM({job,stage,budget:b,ct,at,sa,ag,sl});
 };
-const payNow=()=>{if(!payM||!windoconst Logo = ()=>(
-<div style={{display:"flex",alignItems:"center",gap:9}}>
-<div style={{width:56,height:56,borderRadius:"50%",background:"#FFD700",border:"3px solid #fff",display:"flex",alignItems:"center",justifyContent:"center",padding:2}}>
-<div style={{width:"100%",height:"100%",borderRadius:"50%",background:"#0A1931",display:"flex",alignItems:"center",justifyContent:"center",position:"relative"}}>
-{/* V Hammer + Spanner */}
-<div style={{position:"relative",width:32,height:32}}>
-{/* Spanner - forms left of V */}
-<div style={{position:"absolute",left:2,top:2,width:14,height:6,background:"#FFD700",borderRadius:"3px 8px 8px 3px",transform:"rotate(-35deg)",transformOrigin:"right center"}}></div>
-<div style={{position:"absolute",left:12,top:10,width:3,height:18,background:"#FFD700",transform:"rotate(-20deg)",borderRadius:2}}></div>
-{/* Hammer - forms right of V */}
-<div style={{position:"absolute",right:2,top:2,width:12,height:7,background:"#FFD700",borderRadius:"2px",transform:"rotate(35deg)",transformOrigin:"left center"}}></div>
-<div style={{position:"absolute",right:10,top:10,width:3,height:18,background:"#FFD700",transform:"rotate(20deg)",borderRadius:2}}></div>
-{/* V point */}
-<div style={{position:"absolute",left:"50%",bottom:0,width:6,height:6,background:"#FFD700",borderRadius:"50%",transform:"translateX(-50%)"}}></div>
-</div>
-</div>
-</div>
-<div><b style={{color:"#fff",fontSize:16,lineHeight:"1.05"}}>CraftSure<br/>NG</b><div style={{display:"flex",gap:2,marginTop:1}}><span style={{fontSize:10}}>🇳🇬</span><span style={{fontSize:10}}>🇬🇭</span></div><div style={{color:"#FFD700",fontSize:8,fontWeight:"bold",marginTop:-2}}>NIGERIA & GHANA • VERIFIED</div></div>
-</div>
-);w.PaystackPop)return alert("Paystack loading..."); const h=window.PaystackPop.setup({key:PK,email:user?.email||"test@test.com",amount:payM.sa*100,currency:"NGN",ref:"CS"+Math.floor(Math.random()*1e9),callback:async(r)=>{await supa.from("payments").insert([{job_id:payM.job.id,payer_email:user.email,payer_type:"client",amount:payM.sa,artisan_amount:payM.ag,percent_type:payM.stage+"%",status:"held",paystack_ref:r.reference}]); setPayM(null); alert("✅ Paid "+payM.sl+" ₦"+payM.sa.toLocaleString()+" - Held in escrow"); load();},onClose:()=>{}}); h.openIframe();};
-
+const payNow=()=>{if(!payM||!window.
+PaystackPop)return alert("Paystack loading..."); const h=window.PaystackPop.setup({key:PK,email:user?.email||"test@test.com",amount:payM.sa*100,currency:"NGN",ref:"CS"+Math.floor(Math.random()*1e9),callback:async(r)=>{await supa.from("payments").insert([{job_id:payM.job.id,payer_email:user.email,payer_type:"client",amount:payM.sa,artisan_amount:payM.ag,percent_type:payM.stage+"%",status:"held",paystack_ref:r.reference}]); setPayM(null); alert("✅ Paid "+payM.sl+" ₦"+payM.sa.toLocaleString()+" - Held in escrow"); load();},onClose:()=>{}}); h.openIframe();};
 return(
 <div style={{background:"#f5f7fb",minHeight:"100vh",fontFamily:"system-ui"}}>
 {/* HEADER WITH OLD PERMANENT LOGO */}
