@@ -82,7 +82,7 @@ if(!accNum)return alert("Enter Bank/Opay/MoMo number for payout");
 if(!pVer&&!eVer)return alert("Verify phone or email");
 const payload={name:an,skill:askill,location:aloc,whatsapp:awhat||verE,portfolio:aport,bio:"Verified - "+verM+" - "+payoutMethod+" "+accNum,works:JSON.stringify(aworks),rating:4.9,jobs_done:aworks.length,verified:true,created_by:verE||awhat||user?.email||"guest",phone_verified:pVer,email_verified:eVer,verification_method:verM,payout_method:payoutMethod,bank_name:bankName,account_number:accNum,account_name:accName||an};
 const {error}=await supa.from("artisans").insert([payload]); if(error)return alert(error.message);
-alert("✅ "+an+" Created - 3% fee only - Payout to "+payoutMethod+" "+accNum);
+alert("✅ "+an+" Created - Payout set to "+payoutMethod+" "+accNum);
 setAworks([]);setAn("");setAskill("");setAloc("");setAwhat("");setAport("");setAccNum("");setAccName("");setPVer(false);setEVer(false);setOtpS("");load();setTab("artisans");
 };
 const postAd=async()=>{if(!adC||!adT)return alert("Fill company & title"); const amt=adP==="Basic"?20000:adP==="Premium"?50000:100000; const {error}=await supa.from("ads").insert([{company_name:adC,title:adT,image_url:adImg,link:adL,package:adP,amount:amt,created_by:user?.email||"guest",status:"active"}]); if(error)return alert(error.message); alert("✅ Ad Posted - Will show on Home page!"); setAdC("");setAdT("");setAdImg("");setAdL(""); load(); setTab("home");};
@@ -108,7 +108,7 @@ return(
 {user?<button onClick={()=>{localStorage.removeItem("cs_user");setUser(null);}} style={{padding:"7px 14px",borderRadius:20,border:"2px solid #FFD700",background:"#fff",color:"#0A1931",fontSize:11,fontWeight:"bold"}}>{user.email.slice(0,5)} Out</button>:<button onClick={()=>setTab("login")} style={{padding:"7px 14px",borderRadius:20,border:"none",background:"#fff",color:"#0A1931",fontSize:11,fontWeight:"bold"}}>Login</button>}
 </div>
 </div>
-<div style={{background:"#e6f4ea",padding:"8px 14px",display:"flex",justifyContent:"space-between",alignItems:"center"}}><small style={{fontSize:11,color:"#155724",fontWeight:"700"}}>🇳🇬🇬🇭 Data Saver • Verified • Paystack & MoMo • 3%+7%=10%</small><button onClick={load} style={{padding:"6px 16px",borderRadius:20,border:"none",background:"#0A1931",color:"#FFD700",fontSize:11,fontWeight:"bold"}}>Refresh</button></div>
+<div style={{background:"#e6f4ea",padding:"8px 14px",display:"flex",justifyContent:"space-between",alignItems:"center"}}><small style={{fontSize:11,color:"#155724",fontWeight:"700"}}>🇳🇬🇬🇭 Data Saver • Verified • Paystack & MoMo </small><button onClick={load} style={{padding:"6px 16px",borderRadius:20,border:"none",background:"#0A1931",color:"#FFD700",fontSize:11,fontWeight:"bold"}}>Refresh</button></div>
 
 {/* HOME - WITH ADS DISPLAY */}
 {tab==="home"&&<div>
@@ -188,7 +188,7 @@ return(
 </div>
 {/* BANK / MOMO FIELDS - NEW */}
 <div style={{background:"#fffbe6",padding:10,borderRadius:10,marginTop:8,border:"2px solid #FFD700"}}>
-<b style={{fontSize:12}}>💳 Payout Method — Auto to Opay/Palmpay/MoMo/Bank (3% fee)</b>
+<b style={{fontSize:12}}>💳 Payout Method - Auto to Opay/Palmpay/MoMo/Bank</b>
 <select value={payoutMethod} onChange={e=>setPayoutMethod(e.target.value)} style={{width:"100%",padding:10,marginTop:8,borderRadius:8,border:"1px solid #0A1931"}}>
 <option>Bank Account</option><option>Opay</option><option>Palmpay</option><option>Moniepoint</option><option>MTN MoMo Ghana</option><option>Vodafone Cash</option><option>AirtelTigo Money</option><option>MTN MoMo Nigeria</option>
 </select>
