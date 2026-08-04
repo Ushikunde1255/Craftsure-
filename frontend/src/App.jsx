@@ -157,6 +157,7 @@ return(
 </div>
 );
 })}
+</div>}
 
 {tab==="artisans"&&<div style={{padding:"12px"}}><h3 style={{margin:"8px 0"}}>• Portfolio — 3% Fee Only!</h3>{arts.map(a=>{const w=parseW(a.works);return(<div key={a.id} style={{background:"#fff",borderRadius:14,marginBottom:"10px",padding:"14px",border:"1px solid #e5e7eb",borderLeft:"4px solid #FFD700"}}><div style={{display:"flex",justifyContent:"space-between"}}><div><b style={{fontSize:16}}>{a.name}</b><div style={{display:"flex",gap:6,marginTop:6}}><span>⭐⭐⭐⭐⭐</span><small>{a.rating||4.9} • {a.jobs_done||1} jobs</small></div><small style={{display:"block",marginTop:4}}>📍 {a.location} • 💳 {a.payout_method||a.bank_name||"Bank"} {a.account_number||""}</small></div><div style={{display:"flex",flexDirection:"column",gap:6}}><span style={{background:"#0A1931",color:"#FFD700",padding:"4px 10px",borderRadius:12,fontSize:10,fontWeight:"bold"}}>{a.skill}</span><button onClick={()=>setSelArt(a)} style={{padding:"8px 18px",borderRadius:10,border:"none",background:"#0A1931",color:"#FFD700",fontWeight:"bold",fontSize:12}}>View</button></div></div>{w.length>0&&<div style={{display:"flex",gap:6,marginTop:10}}>{w.slice(0,2).map((x,i)=><img key={i} src={x} style={{width:"80px",height:"60px",borderRadius:8,objectFit:"cover",border:"1px solid #FFD700"}} alt="work"/>)}</div>}</div>);})}<button onClick={()=>setTab("join")} style={{width:"100%",marginTop:14,padding:"14px",borderRadius:12,border:"none",background:"#FFD700",color:"#0A1931",fontWeight:"bold"}}>+ Join as Artisan - 3% Fee Only!</button></div>}
 
@@ -219,6 +220,5 @@ return(
 {pv&&<div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,0.96)",zIndex:100,display:"flex",flexDirection:"column"}}><div style={{display:"flex",justifyContent:"space-between",padding:"12px",color:"#fff"}}><b style={{color:"#FFD700"}}>Proof Protected — 3%+7% Escrow</b><button onClick={()=>setPv(null)} style={{background:"#fff",border:"none",borderRadius:"50%",width:32,height:32}}>X</button></div><div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center"}}><img src={pv} style={{maxWidth:"95%",maxHeight:"80vh",borderRadius:12,border:"3px solid #FFD700"}} alt="full"/></div></div>}
 
 </div>
-</div>
 );
-  }
+}
