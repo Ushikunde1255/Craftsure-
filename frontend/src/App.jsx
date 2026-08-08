@@ -32,18 +32,24 @@ const [accNum,setAccNum]=useState(""); const [accName,setAccName]=useState("");
 const chatEndRef=useRef(null);
 const load=async()=>{
 try{
-const {data:j}=await supa.from("jobs").select("id,title,location,budget,description,created_by").order("id",{ascending:false}).limit(10);
+console.log("Loading...");
+
+// JOBS - Must include image_url for homepage image!
+const {data:j, error:je}=await supa.from("jobs").select("id,title,location,budget,description,image_url,created_by").order("id",{ascending:false}).limit(10);
+console.log("Jobs:", j, je);
 if(j) setJobs(j);
 
-const {data:a}=await supa.from("artisans").select("id,name,skill,location,rating,jobs_done,portfolio,payout_method,bank_name,account_number,verification_method,created_by,whatsapp").order("id",{ascending:false}).limit(20);
+// ARTISANS - Must include portfolio for list!
+const {data:a, error:ae}=await supa.from("artisans").select("id,name,skill,location,rating,jobs_done,portfolio,bio,payout_method,bank_name,account_number,verification_method,created_by,whatsapp,works").order("id",{ascending:false}).limit(20);
+console.log("Artisans:", a, ae);
 if(a) setArts(a);
 
 if(tab==="admin"){
-const {data:p}=await supa.from("payments").select("amount,payer_type").order("id",{ascending:false}).limit(50);
+const {data:p}=await supa.from("payments").select("*").order("id",{ascending:false}).limit(50);
 if(p) setPays(p);
-const {data:h}=await supa.from("hires").select("job_id,artisan_name").order("id",{ascending:false}).limit(20);
+const {data:h}=await supa.from("hires").select("*").order("id",{ascending:false}).limit(20);
 if(h) setHires(h);
-const {data:ad}=await supa.from("ads").select("id,company_name,title,amount,image_url,link,package").order("id",{ascending:false}).limit(10);
+const {data:ad}=await supa.from("ads").select("*").order("id",{ascending:false}).limit(10);
 if(ad) setAds(ad);
 }
 
@@ -52,7 +58,7 @@ const {data:m}=await supa.from("messages").select("*").eq("job_id",chatJob.id).o
 if(m) setMsgs(m);
 }
 
-}catch(e){console.log(e)}
+}catch(e){console.log("LOAD ERROR:", e)}
 };
 const isAdmin = user && user.email && user.email.toLowerCase()===ADMIN.toLowerCase();
 
