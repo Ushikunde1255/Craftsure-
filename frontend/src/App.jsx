@@ -34,31 +34,21 @@ const load=async()=>{
 try{
 const {data:j}=await supa.from("jobs").select("*").order("id",{ascending:false}).limit(10);
 if(j) setJobs(j);
-
 const {data:a}=await supa.from("artisans").select("*").order("id",{ascending:false}).limit(20);
 if(a) setArts(a);
-
 const {data:p}=await supa.from("payments").select("*").order("id",{ascending:false}).limit(30);
 if(p) setPays(p);
 const {data:h}=await supa.from("hires").select("*").order("id",{ascending:false}).limit(20);
 if(h) setHires(h);
 const {data:ad}=await supa.from("ads").select("*").order("id",{ascending:false}).limit(10);
 if(ad) setAds(ad);
-
 if(chatJob){
-const {data:m}=await supa.from("messages").select("*").eq("job_id", chatJob.id).order("id",{ascending:true}).limit(50);
+const {data:m}=await supa.from("messages").select("*").eq("job_id",chatJob.id).order("id",{ascending:true}).limit(50);
 if(m) setMsgs(m);
 }
 }catch(e){console.log(e)}
 };
 useEffect(()=>{load();},[tab, chatJob]);
-const isAdmin = user && user.email && user.email.toLowerCase()===ADMIN.toLowerCase();
-
-// SAFE TOTALS - NEVER CRASH
-const c7Total = (pays||[]).filter(p=>p.payer_type==="client").reduce((s,p)=>s+Math.floor((p.amount||0)*0.07/1.07),0);
-const a3Total = (pays||[]).filter(p=>p.payer_type==="client").reduce((s,p)=>s+Math.floor((p.amount||0)*0.03/1.07),0);
-const adTotal = (ads||[]).reduce((s,a)=>s+(a.amount||0),0);
-const grand = c7Total + a3Total + adTotal;
 
 const compress=(b64,maxW,q)=>{return new Promise(r=>{const i=new Image();i.onload=()=>{const c=document.createElement("canvas");let w=i.width,h=i.height;if(w>maxW){h=h*maxW/w;w=maxW;}c.width=w;c.height=h;c.getContext("2d").drawImage(i,0,0,w,h);r(c.toDataURL("image/jpeg",q));};i.src=b64;});};
 const up=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{compress(ev.target.result,600,0.4).then(c=>setJi(c));};r.readAsDataURL(f);};
