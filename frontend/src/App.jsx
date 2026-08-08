@@ -30,45 +30,30 @@ const [bankName,setBankName]=useState("GTBank");
 const [proofs,setProofs]=useState({});
 const [accNum,setAccNum]=useState(""); const [accName,setAccName]=useState("");
 const chatEndRef=useRef(null);
-
-const const load=async()=>{
+const load=async()=>{
 try{
-// HOME - Jobs: only small fields, no big image base64 in list? We keep image but limit 10
-const {data:j}=await supa.from("jobs")
-  .select("id,title,location,budget,description,created_by")
-  .order("id",{ascending:false}).limit(10);
+const {data:j}=await supa.from("jobs").select("id,title,location,budget,description,created_by").order("id",{ascending:false}).limit(10);
 if(j) setJobs(j);
 
-// ARTISANS - LIST: DO NOT SELECT works! That's the killer 2.5MB each!
-const {data:a}=await supa.from("artisans")
-  .select("id,name,skill,location,rating,jobs_done,portfolio,payout_method,bank_name,account_number,verification_method,created_by,whatsapp")
-  .order("id",{ascending:false}).limit(20);
+const {data:a}=await supa.from("artisans").select("id,name,skill,location,rating,jobs_done,portfolio,payout_method,bank_name,account_number,verification_method,created_by,whatsapp").order("id",{ascending:false}).limit(20);
 if(a) setArts(a);
 
-// Only load heavy tables when needed - Admin tab only!
 if(tab==="admin"){
-  const {data:p}=await supa.from("payments").select("amount,payer_type").order("id",{ascending:false}).limit(50);
-  if(p) setPays(p);
-  const {data:h}=await supa.from("hires").select("job_id,artisan_name").order("id",{ascending:false}).limit(20);
-  if(h) setHires(h);
-  const {data:ad}=await supa.from("ads").select("id,company_name,title,amount,image_url,link,package").order("id",{ascending:false}).limit(10);
-  if(ad) setAds(ad);
+const {data:p}=await supa.from("payments").select("amount,payer_type").order("id",{ascending:false}).limit(50);
+if(p) setPays(p);
+const {data:h}=await supa.from("hires").select("job_id,artisan_name").order("id",{ascending:false}).limit(20);
+if(h) setHires(h);
+const {data:ad}=await supa.from("ads").select("id,company_name,title,amount,image_url,link,package").order("id",{ascending:false}).limit(10);
+if(ad) setAds(ad);
 }
 
-// Messages only when chat open
 if(chatJob){
-  const {data:m}=await supa.from("messages").select("*").eq("job_id",chatJob.id).order("id",{ascending:true}).limit(50);
-  if(m) setMsgs(m);
+const {data:m}=await supa.from("messages").select("*").eq("job_id",chatJob.id).order("id",{ascending:true}).limit(50);
+if(m) setMsgs(m);
 }
 
 }catch(e){console.log(e)}
 };
-useEffect(()=>{load();},[]);
-useEffect(()=>{if(chatEndRef.current) chatEndRef.current.scrollIntoView({behavior:"smooth"});},[msgs,chatJob]);
-useEffect(()=>{const s=document.createElement("script");s.src="https://js.paystack.co/v1/inline.js";s.async=true;document.body.appendChild(s);},[]);
-
-const getB=(b)=>{let n=parseInt((b||"").replace(/[^0-9]/g,""))||0;if((b||"").toLowerCase().includes("k")) n=n*1000;return n;};
-const parseW=(w)=>{try{const a=JSON.parse(w||"[]");return Array.isArray(a)?a:[];}catch{return [];}};
 const isAdmin = user && user.email && user.email.toLowerCase()===ADMIN.toLowerCase();
 
 // SAFE TOTALS - NEVER CRASH
