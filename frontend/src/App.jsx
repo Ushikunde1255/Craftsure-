@@ -56,6 +56,9 @@ const isAdmin = user && user.email === "nicholasu9@gmail.com";
 
 useEffect(()=>{load();},[]);
 
+const getB=(b)=>{ try{ return parseInt(String(b||"0").replace(/[^0-9]/g,""))||0; }catch{return 0;} };
+const parseW=(w)=>{ try{ if(!w) return []; if(Array.isArray(w)) return w; return JSON.parse(w); }catch{ return []; } };
+
 const compress=(b64,maxW,q)=>{return new Promise(r=>{const i=new Image();i.onload=()=>{const c=document.createElement("canvas");let w=i.width,h=i.height;if(w>maxW){h=h*maxW/w;w=maxW;}c.width=w;c.height=h;c.getContext("2d").drawImage(i,0,0,w,h);r(c.toDataURL("image/jpeg",q));};i.src=b64;});};
 const up=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{compress(ev.target.result,600,0.4).then(c=>setJi(c));};r.readAsDataURL(f);};
 const upArt=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{compress(ev.target.result,300,0.4).then(c=>setAport(c));};r.readAsDataURL(f);};
