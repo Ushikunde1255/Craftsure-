@@ -48,6 +48,11 @@ if(m) setMsgs(m);
 }
 }catch(e){console.log(e)}
 };
+const c7Total = (pays||[]).filter(p=>p.payer_type==="client").reduce((s,p)=>s+Math.floor((p.amount||0)*0.07/1.07),0);
+const a3Total = (pays||[]).filter(p=>p.payer_type==="client").reduce((s,p)=>s+Math.floor((p.amount||0)*0.03/1.07),0);
+const adTotal = (ads||[]).reduce((s,a)=>s+(a.amount||0),0);
+const grand = c7Total + a3Total + adTotal;
+  
 useEffect(()=>{load();},[]);
 
 const compress=(b64,maxW,q)=>{return new Promise(r=>{const i=new Image();i.onload=()=>{const c=document.createElement("canvas");let w=i.width,h=i.height;if(w>maxW){h=h*maxW/w;w=maxW;}c.width=w;c.height=h;c.getContext("2d").drawImage(i,0,0,w,h);r(c.toDataURL("image/jpeg",q));};i.src=b64;});};
